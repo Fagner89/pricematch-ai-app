@@ -239,7 +239,13 @@ const ListagemProdutos = () => {
                       <div className="flex justify-between text-sm">
                         <div>
                           <span className="text-muted-foreground">Tipo: </span>
-                          <span className="font-medium">{produto.tipo === 'intermediario' ? 'Intermediário' : 'Final'}</span>
+                          <span className={`inline-block px-2 py-0.5 rounded text-xs ${
+                            produto.tipo === 'intermediario' 
+                              ? 'bg-green-100 text-green-800' 
+                              : 'bg-blue-100 text-blue-800'
+                          }`}>
+                            {produto.tipo === 'intermediario' ? 'Intermediário' : 'Final'}
+                          </span>
                         </div>
                       </div>
                       <div className="flex justify-between text-sm">
@@ -259,7 +265,11 @@ const ListagemProdutos = () => {
                       <div className="font-medium text-foreground">{produto.codigo || "-"}</div>
                       <div className="text-foreground">{produto.nome}</div>
                       <div className="text-sm">
-                        <span className="inline-block px-2 py-1 rounded-sm bg-primary/10 text-primary font-medium">
+                        <span className={`inline-block px-2 py-1 rounded text-xs ${
+                          produto.tipo === 'intermediario' 
+                            ? 'bg-green-100 text-green-800' 
+                            : 'bg-blue-100 text-blue-800'
+                        }`}>
                           {produto.tipo === 'intermediario' ? 'Intermediário' : 'Final'}
                         </span>
                       </div>
