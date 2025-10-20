@@ -53,14 +53,17 @@ const ListagemMargem = () => {
             Margem
           </h1>
 
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => navigate("/cadastro-margem")}
-            className="hover:bg-muted min-w-[52px] min-h-[52px] p-3"
-          >
-            <Plus className="h-8 w-8 text-foreground" />
-          </Button>
+          {!margem && (
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => navigate("/cadastro-margem")}
+              className="hover:bg-muted min-w-[52px] min-h-[52px] p-3"
+            >
+              <Plus className="h-8 w-8 text-foreground" />
+            </Button>
+          )}
+          {margem && <div className="w-[52px]"></div>}
         </div>
       </header>
 

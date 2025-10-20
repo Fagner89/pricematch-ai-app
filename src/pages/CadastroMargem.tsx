@@ -179,12 +179,15 @@ const CadastroMargem = () => {
               <div className="space-y-4">
                 {/* % Margem Field */}
                 <div>
+                  <label className="text-sm font-medium text-foreground block mb-2">
+                    % Margem
+                  </label>
                   <Input
                     type="text"
                     inputMode="decimal"
                     value={margem}
                     onChange={(e) => handleInputChange("margem", e.target.value)}
-                    placeholder="% Margem"
+                    placeholder="Digite a margem"
                     disabled={hasExistingMargem && !isEditing}
                     className={errors.margem ? 'border-destructive' : ''}
                   />
@@ -195,12 +198,15 @@ const CadastroMargem = () => {
 
                 {/* Custo Indireto Field */}
                 <div>
+                  <label className="text-sm font-medium text-foreground block mb-2">
+                    Custo Indireto Padrão (%)
+                  </label>
                   <Input
                     type="text"
                     inputMode="decimal"
                     value={custoIndireto}
                     onChange={(e) => handleInputChange("custoIndireto", e.target.value)}
-                    placeholder="Custo Indireto Padrão (%)"
+                    placeholder="Digite o custo indireto"
                     disabled={hasExistingMargem && !isEditing}
                   />
                 </div>
