@@ -117,9 +117,15 @@ const CalculadoraPreco = () => {
                   id="custoIndireto"
                   type="text"
                   inputMode="decimal"
-                  placeholder="Digite o custo indireto"
+                  placeholder="0,00"
                   value={custoIndireto}
-                  onChange={(e) => setCustoIndireto(e.target.value.replace(/[^\d,.-]/g, ""))}
+                  onChange={(e) => {
+                    const value = e.target.value.replace(/[^\d,]/g, "");
+                    const parts = value.split(",");
+                    if (parts.length > 2) return;
+                    if (parts[1] && parts[1].length > 2) return;
+                    setCustoIndireto(value);
+                  }}
                   className="text-base h-12"
                 />
               </div>
@@ -133,9 +139,15 @@ const CalculadoraPreco = () => {
                   id="margem"
                   type="text"
                   inputMode="decimal"
-                  placeholder="Digite a margem"
+                  placeholder="0,00"
                   value={margem}
-                  onChange={(e) => setMargem(e.target.value.replace(/[^\d,.-]/g, ""))}
+                  onChange={(e) => {
+                    const value = e.target.value.replace(/[^\d,]/g, "");
+                    const parts = value.split(",");
+                    if (parts.length > 2) return;
+                    if (parts[1] && parts[1].length > 2) return;
+                    setMargem(value);
+                  }}
                   className="text-base h-12"
                 />
               </div>
@@ -149,9 +161,15 @@ const CalculadoraPreco = () => {
                   id="taxa"
                   type="text"
                   inputMode="decimal"
-                  placeholder="Digite a taxa"
+                  placeholder="0,00"
                   value={taxa}
-                  onChange={(e) => setTaxa(e.target.value.replace(/[^\d,.-]/g, ""))}
+                  onChange={(e) => {
+                    const value = e.target.value.replace(/[^\d,]/g, "");
+                    const parts = value.split(",");
+                    if (parts.length > 2) return;
+                    if (parts[1] && parts[1].length > 2) return;
+                    setTaxa(value);
+                  }}
                   className="text-base h-12"
                 />
               </div>
