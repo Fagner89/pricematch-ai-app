@@ -241,6 +241,8 @@ const NovoPedido = () => {
         quantidade: item.quantidade,
         data: new Date().toISOString(),
         observacao: `Venda - Pedido #${pedido.id}`,
+        origem: "pedido",
+        pedidoId: pedido.id,
       });
 
       // Se tem ficha técnica, deduzir insumos
@@ -261,6 +263,8 @@ const NovoPedido = () => {
             quantidade: quantidadeNecessaria,
             data: new Date().toISOString(),
             observacao: `Dedução automática - Pedido #${pedido.id} (${produto.nome})`,
+            origem: "pedido",
+            pedidoId: pedido.id,
           });
         });
       }

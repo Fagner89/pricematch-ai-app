@@ -44,6 +44,8 @@ interface Movimentacao {
   quantidade: number;
   data: string;
   observacao?: string;
+  origem?: "pedido" | "manual";
+  pedidoId?: string;
 }
 
 const Estoque = () => {
@@ -173,6 +175,7 @@ const Estoque = () => {
       quantidade: qtd,
       data: new Date().toISOString(),
       observacao: observacao || undefined,
+      origem: "manual",
     };
     movimentacoes.push(novaMovimentacao);
     localStorage.setItem("movimentacoes", JSON.stringify(movimentacoes));
@@ -223,6 +226,7 @@ const Estoque = () => {
         quantidade: quantidadeNecessaria,
         data: new Date().toISOString(),
         observacao: `Dedução automática - Produção de ${produto.nome}`,
+        origem: "manual",
       };
       movimentacoes.push(movimentacaoInsumo);
     });
