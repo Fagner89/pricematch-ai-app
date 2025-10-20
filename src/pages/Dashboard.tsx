@@ -3,10 +3,16 @@ import { useNavigate } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { User, Plus, Package, ShoppingCart, TrendingUp, TrendingDown, Menu, Calculator } from "lucide-react";
+import { formatCurrency } from "@/lib/utils";
 
 const Dashboard = () => {
   const navigate = useNavigate();
   const [nomeEmpresa, setNomeEmpresa] = useState("");
+  const [vendasHoje, setVendasHoje] = useState({ total: 0, quantidade: 0 });
+  const [produtosRentabilidade, setProdutosRentabilidade] = useState<{
+    maiores: Array<{ nome: string; rentabilidade: number }>;
+    menores: Array<{ nome: string; rentabilidade: number }>;
+  }>({ maiores: [], menores: [] });
 
   useEffect(() => {
     const dadosLoja = localStorage.getItem("dadosLoja");
@@ -17,7 +23,87 @@ const Dashboard = () => {
         setNomeEmpresa(primeiroNome);
       }
     }
+
+    // Carregar vendas de hoje
+    const hoje = new Date().toDateString();
+    const vendasData = JSON.parse(localStorage.getItem("vendasHoje") || "{}");
+    if (vendasData.data === hoje) {
+      setVendasHoje({
+        total: vendasData.total || 0,
+        quantidade: vendasData.quantidade || 0
+      });
+    }
+
+    // Calcular rentabilidade dos produtos
+    calcularRentabilidade();
   }, []);
+
+  const calcularRentabilidade = () => {
+    const pedidos = JSON.parse(localStorage.getItem("pedidos") || "[]");
+    const produtos = JSON.parse(localStorage.getItem("produtos") || "[]");
+    const insumos = JSON.parse(localStorage.getItem("insumos") || "[]");
+    const hoje = new Date().toDateString();
+
+    // Filtrar pedidos de hoje
+    const pedidosHoje = pedidos.filter((p: any) => {
+      const dataPedido = new Date(p.data).toDateString();
+      return dataPedido === hoje;
+    });
+
+    if (pedidosHoje.length === 0) {
+      setProdutosRentabilidade({ maiores: [], menores: [] });
+      return;
+    }
+
+    // Calcular rentabilidade por produto
+    const rentabilidadePorProduto: { [key: string]: { nome: string; rentabilidade: number; vendas: number } } = {};
+
+    pedidosHoje.forEach((pedido: any) => {
+      pedido.itens.forEach((item: any) => {
+        const produto = produtos.find((p: any) => p.id === item.produtoId);
+        if (!produto) return;
+
+        // Calcular custo do produto
+        let custoProduto = 0;
+        if (produto.fichaTecnica && produto.fichaTecnica.length > 0) {
+          const quantoRende = produto.quantoRende || 1;
+          produto.fichaTecnica.forEach((insumoVinculado: any) => {
+            const insumo = insumos.find((i: any) => i.id === insumoVinculado.insumoId);
+            if (insumo) {
+              const quantidadeNecessaria = insumoVinculado.quantidade / quantoRende;
+              custoProduto += quantidadeNecessaria * insumo.precoUnitario;
+            }
+          });
+        }
+
+        // Calcular lucro e rentabilidade
+        const lucro = item.precoUnitario - custoProduto;
+        const rentabilidade = custoProduto > 0 ? (lucro / custoProduto) * 100 : 0;
+
+        if (!rentabilidadePorProduto[produto.id]) {
+          rentabilidadePorProduto[produto.id] = {
+            nome: produto.nome,
+            rentabilidade: rentabilidade,
+            vendas: item.quantidade
+          };
+        } else {
+          // Média ponderada pela quantidade vendida
+          const totalVendas = rentabilidadePorProduto[produto.id].vendas + item.quantidade;
+          rentabilidadePorProduto[produto.id].rentabilidade = 
+            ((rentabilidadePorProduto[produto.id].rentabilidade * rentabilidadePorProduto[produto.id].vendas) + 
+            (rentabilidade * item.quantidade)) / totalVendas;
+          rentabilidadePorProduto[produto.id].vendas = totalVendas;
+        }
+      });
+    });
+
+    const produtosOrdenados = Object.values(rentabilidadePorProduto).sort((a, b) => b.rentabilidade - a.rentabilidade);
+
+    setProdutosRentabilidade({
+      maiores: produtosOrdenados.slice(0, 3),
+      menores: produtosOrdenados.slice(-3).reverse()
+    });
+  };
 
   const handleUserClick = () => {
     const dadosLoja = localStorage.getItem("dadosLoja");
@@ -130,7 +216,7 @@ const Dashboard = () => {
                 <div className="space-y-2">
                   <h3 className="font-semibold text-sm text-foreground">Vendas Hoje</h3>
                   <p className="text-xs text-muted-foreground">{today}</p>
-                  <p className="text-xl sm:text-2xl font-bold text-foreground">R$ 0,00</p>
+                  <p className="text-xl sm:text-2xl font-bold text-foreground">{formatCurrency(vendasHoje.total)}</p>
                 </div>
               </CardContent>
             </Card>
@@ -141,7 +227,7 @@ const Dashboard = () => {
                 <div className="space-y-2">
                   <h3 className="font-semibold text-sm text-foreground">Quantidade</h3>
                   <p className="text-xs text-muted-foreground">de Pedidos</p>
-                  <p className="text-xl sm:text-2xl font-bold text-foreground">0</p>
+                  <p className="text-xl sm:text-2xl font-bold text-foreground">{vendasHoje.quantidade}</p>
                 </div>
               </CardContent>
             </Card>
@@ -158,9 +244,19 @@ const Dashboard = () => {
                     <h4 className="font-semibold text-sm text-foreground">Maior Rentabilidade</h4>
                   </div>
                   <div className="space-y-2">
-                    <div className="text-xs text-muted-foreground p-2 bg-muted rounded">Produto 1</div>
-                    <div className="text-xs text-muted-foreground p-2 bg-muted rounded">Produto 2</div>
-                    <div className="text-xs text-muted-foreground p-2 bg-muted rounded">Produto 3</div>
+                    {produtosRentabilidade.maiores.length > 0 ? (
+                      produtosRentabilidade.maiores.map((produto, idx) => (
+                        <div key={idx} className="text-xs text-foreground p-2 bg-muted rounded">
+                          {produto.nome} ({produto.rentabilidade.toFixed(1)}%)
+                        </div>
+                      ))
+                    ) : (
+                      <>
+                        <div className="text-xs text-muted-foreground p-2 bg-muted rounded">-</div>
+                        <div className="text-xs text-muted-foreground p-2 bg-muted rounded">-</div>
+                        <div className="text-xs text-muted-foreground p-2 bg-muted rounded">-</div>
+                      </>
+                    )}
                   </div>
                 </div>
 
@@ -171,9 +267,19 @@ const Dashboard = () => {
                     <h4 className="font-semibold text-sm text-foreground">Menor Rentabilidade</h4>
                   </div>
                   <div className="space-y-2">
-                    <div className="text-xs text-muted-foreground p-2 bg-muted rounded">Produto 1</div>
-                    <div className="text-xs text-muted-foreground p-2 bg-muted rounded">Produto 2</div>
-                    <div className="text-xs text-muted-foreground p-2 bg-muted rounded">Produto 3</div>
+                    {produtosRentabilidade.menores.length > 0 ? (
+                      produtosRentabilidade.menores.map((produto, idx) => (
+                        <div key={idx} className="text-xs text-foreground p-2 bg-muted rounded">
+                          {produto.nome} ({produto.rentabilidade.toFixed(1)}%)
+                        </div>
+                      ))
+                    ) : (
+                      <>
+                        <div className="text-xs text-muted-foreground p-2 bg-muted rounded">-</div>
+                        <div className="text-xs text-muted-foreground p-2 bg-muted rounded">-</div>
+                        <div className="text-xs text-muted-foreground p-2 bg-muted rounded">-</div>
+                      </>
+                    )}
                   </div>
                 </div>
               </div>
