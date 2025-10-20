@@ -56,14 +56,16 @@ const ListagemLojas = () => {
             Cadastro da Loja
           </h1>
           
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={handleNovoLoja}
-            className="hover:bg-muted min-w-[52px] min-h-[52px] p-3"
-          >
-            <Plus className="h-8 w-8 text-foreground" />
-          </Button>
+          {lojas.length === 0 && (
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={handleNovoLoja}
+              className="hover:bg-muted min-w-[52px] min-h-[52px] p-3"
+            >
+              <Plus className="h-8 w-8 text-foreground" />
+            </Button>
+          )}
         </div>
       </header>
 
