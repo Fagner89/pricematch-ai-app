@@ -159,10 +159,17 @@ const CadastroProduto = () => {
           margemData.margemDecimal !== undefined;
         setMargemCadastrada(hasValidMargem);
         setMargem(margemData.margemDecimal || 0);
-        setDefaultCustoIndireto(margemData.custoIndireto || "0,0%");
+        
+        // Função para remover % do valor padrão
+        const formatForDisplay = (value: string) => {
+          if (!value) return "";
+          return value.replace(/[^\d,.-]/g, "");
+        };
+        
+        setDefaultCustoIndireto(formatForDisplay(margemData.custoIndireto || "0"));
         setFormData((prev) => ({
           ...prev,
-          custoIndireto: margemData.custoIndireto || "0,0%",
+          custoIndireto: formatForDisplay(margemData.custoIndireto || "0"),
         }));
       } catch (error) {
         console.error("Erro ao carregar margem:", error);
@@ -176,6 +183,12 @@ const CadastroProduto = () => {
     if (isEditing && id) {
       const produto: Produto | undefined = savedProdutos.find((p: Produto) => p.id === id);
       if (produto) {
+        // Função para remover % do valor
+        const formatForDisplay = (value: string) => {
+          if (!value) return "";
+          return value.replace(/[^\d,.-]/g, "");
+        };
+
         setFormData({
           nome: produto.nome,
           codigo: produto.codigo || "",
@@ -189,7 +202,7 @@ const CadastroProduto = () => {
           custoTotalProducao: produto.custoProducao || 0,
           custoUnitario: produto.custoProducao || 0,
           precoSugerido: produto.precoVenda || 0,
-          custoIndireto: produto.custoIndireto ?? margemData?.custoIndireto ?? defaultCustoIndireto,
+          custoIndireto: formatForDisplay(produto.custoIndireto ?? margemData?.custoIndireto ?? defaultCustoIndireto),
         });
         setCustoUnitarioInput((produto.custoProducao || 0).toLocaleString('pt-BR', {
           minimumFractionDigits: 2,
@@ -490,6 +503,11 @@ const CadastroProduto = () => {
 
     const existingProdutos: Produto[] = JSON.parse(localStorage.getItem("produtos") || "[]");
 
+    // Formatar custoIndireto adicionando % antes de salvar
+    const custoIndiretoFormatado = formData.custoIndireto.trim() 
+      ? formData.custoIndireto.trim() + "%" 
+      : "0%";
+
     const produtoData: Produto = {
       id: isEditing ? id! : Date.now().toString(),
       nome: formData.nome.trim(),
@@ -501,7 +519,7 @@ const CadastroProduto = () => {
       quantoRende: parseFloat(formData.quantoRende) || 0,
       componentes: componentesDoProduto.length > 0 ? componentesDoProduto : undefined, // Salva os componentes
       fichaTecnica: insumosVinculados.length > 0 ? insumosVinculados : undefined, // Mantém compatibilidade
-      custoIndireto: formData.custoIndireto,
+      custoIndireto: custoIndiretoFormatado,
       canaisVenda: canaisVenda.length > 0 ? canaisVenda : undefined,
     };
 
@@ -761,14 +779,17 @@ const CadastroProduto = () => {
                     <div className="text-sm text-muted-foreground">Custo Indireto (%)</div>
                     <input
                       type="text"
+                      inputMode="decimal"
                       value={formData.custoIndireto}
                       onChange={(e) => {
-                        handlePercentageInput(e.target.value, (masked) =>
-                          setFormData((prev) => ({ ...prev, custoIndireto: masked }))
-                        );
+                        const value = e.target.value.replace(/[^\d,]/g, "");
+                        const parts = value.split(",");
+                        if (parts.length > 2) return;
+                        if (parts[1] && parts[1].length > 2) return;
+                        setFormData((prev) => ({ ...prev, custoIndireto: value }));
                       }}
                       className="mt-2 w-full h-10 px-3 border border-border rounded-sm text-sm text-foreground text-center"
-                      placeholder="Ex: 10,0%"
+                      placeholder="Ex: 10,0"
                     />
                     <p className="text-xs text-muted-foreground mt-2">
                       Percentual aplicado sobre o custo unitário para despesas indiretas.
@@ -983,14 +1004,17 @@ const CadastroProduto = () => {
                           <div className="text-sm text-muted-foreground">Custo Indireto (%)</div>
                           <input
                             type="text"
+                            inputMode="decimal"
                             value={formData.custoIndireto}
                             onChange={(e) => {
-                              handlePercentageInput(e.target.value, (masked) =>
-                                setFormData(prev => ({ ...prev, custoIndireto: masked }))
-                              );
+                              const value = e.target.value.replace(/[^\d,]/g, "");
+                              const parts = value.split(",");
+                              if (parts.length > 2) return;
+                              if (parts[1] && parts[1].length > 2) return;
+                              setFormData(prev => ({ ...prev, custoIndireto: value }));
                             }}
                             className="mt-2 w-full h-10 px-3 border border-border rounded-sm text-sm text-foreground text-center"
-                            placeholder="Ex: 10,0%"
+                            placeholder="Ex: 10,0"
                           />
                           <p className="text-xs text-muted-foreground mt-2">
                             Percentual aplicado sobre o custo unitário para despesas indiretas.
