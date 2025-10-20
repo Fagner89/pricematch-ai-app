@@ -169,7 +169,7 @@ const Dashboard = () => {
       title: "Novo Pedido",
       icon: ShoppingCart,
       path: "/pedidos/novo",
-      count: counts.vendas,
+      count: vendasHoje.quantidade,
       label: "Pedidos hoje",
       active: true
     }
