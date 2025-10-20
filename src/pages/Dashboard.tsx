@@ -63,22 +63,20 @@ const Dashboard = () => {
         const produto = produtos.find((p: any) => p.id === item.produtoId);
         if (!produto) return;
 
-        // Calcular custo do produto
-        let custoProduto = 0;
-        if (produto.fichaTecnica && produto.fichaTecnica.length > 0) {
-          const quantoRende = produto.quantoRende || 1;
-          produto.fichaTecnica.forEach((insumoVinculado: any) => {
-            const insumo = insumos.find((i: any) => i.id === insumoVinculado.insumoId);
-            if (insumo) {
-              const quantidadeNecessaria = insumoVinculado.quantidade / quantoRende;
-              custoProduto += quantidadeNecessaria * insumo.precoUnitario;
-            }
-          });
-        }
+        // Calcular custo do produto usando custoProducao
+        const custoProduto = produto.custoProducao || 0;
 
-        // Calcular lucro e rentabilidade
-        const lucro = item.precoUnitario - custoProduto;
-        const rentabilidade = custoProduto > 0 ? (lucro / custoProduto) * 100 : 0;
+        console.info('Cálculo Rentabilidade Dashboard:', {
+          produto: produto.nome,
+          custoProduto,
+          precoUnitario: item.precoUnitario,
+          quantidade: item.quantidade
+        });
+
+        // Calcular rentabilidade: (preço - custo) / preço * 100
+        const rentabilidade = item.precoUnitario > 0 
+          ? ((item.precoUnitario - custoProduto) / item.precoUnitario) * 100 
+          : 0;
 
         if (!rentabilidadePorProduto[produto.id]) {
           rentabilidadePorProduto[produto.id] = {
