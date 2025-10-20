@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { ArrowLeft, Plus, ShoppingCart, Trash2, Pencil, Search } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from "@/components/ui/breadcrumb";
-import { parsePercentageToDecimal } from "@/lib/utils";
+import { parsePercentageToDecimal, parseCurrencyToDecimal, formatCurrency } from "@/lib/utils";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 
 interface Produto {
@@ -17,6 +17,12 @@ interface Produto {
   precoVenda: number;
   custoIndireto?: string;
   tipo?: string;
+  canaisVenda?: Array<{
+    tipo: "balcao" | "plataforma";
+    plataformaId?: string;
+    plataformaNome?: string;
+    valorFinal?: string;
+  }>;
 }
 
 const ListagemProdutos = () => {
@@ -64,9 +70,23 @@ const ListagemProdutos = () => {
     );
   });
 
+  const getPrecoBalcao = (produto: Produto): number => {
+    // Buscar o valor final do balcão nos canais de venda
+    const canalBalcao = produto.canaisVenda?.find(canal => 
+      canal.tipo === "balcao" || canal.plataformaNome?.toLowerCase() === "balcão"
+    );
+    
+    if (canalBalcao?.valorFinal) {
+      return parseCurrencyToDecimal(canalBalcao.valorFinal);
+    }
+    
+    // Fallback para preço de venda padrão
+    return produto.precoVenda || 0;
+  };
+
   const calcularRentabilidade = (produto: Produto) => {
     const custo = produto.custoProducao || 0;
-    const preco = produto.precoVenda || 0;
+    const preco = getPrecoBalcao(produto);
     if (custo <= 0 || preco <= 0) return { percent: 0, formatted: "0,00%" };
   
     // Busca custo indireto salvo no produto ou no padrão
@@ -184,6 +204,7 @@ const ListagemProdutos = () => {
               {/* Linhas - responsivas */}
               {filteredProdutos.map((produto) => {
                 const rentabilidade = calcularRentabilidade(produto);
+                const precoBalcao = getPrecoBalcao(produto);
                 return (
                   <div 
                     key={produto.id} 
@@ -224,7 +245,7 @@ const ListagemProdutos = () => {
                       <div className="flex justify-between text-sm">
                         <div>
                           <span className="text-muted-foreground">Preço: </span>
-                          <span className="font-medium">R$ {produto.precoVenda.toFixed(2).replace('.', ',')}</span>
+                          <span className="font-medium">{formatCurrency(precoBalcao)}</span>
                         </div>
                         <div>
                           <span className="text-muted-foreground">Rentab.: </span>
@@ -242,7 +263,7 @@ const ListagemProdutos = () => {
                           {produto.tipo === 'intermediario' ? 'Intermediário' : 'Final'}
                         </span>
                       </div>
-                      <div className="font-medium">R$ {produto.precoVenda.toFixed(2).replace('.', ',')}</div>
+                      <div className="font-medium">{formatCurrency(precoBalcao)}</div>
                       <div className="font-medium">{rentabilidade.formatted}</div>
                       <div className="flex gap-1 justify-end">
                         <Button
