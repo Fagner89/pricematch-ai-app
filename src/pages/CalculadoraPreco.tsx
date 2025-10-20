@@ -117,9 +117,9 @@ const CalculadoraPreco = () => {
                   id="custoIndireto"
                   type="text"
                   inputMode="decimal"
-                  placeholder="0,00%"
+                  placeholder="Digite o custo indireto"
                   value={custoIndireto}
-                  onChange={(e) => handlePercentageInput(e.target.value, setCustoIndireto)}
+                  onChange={(e) => setCustoIndireto(e.target.value.replace(/[^\d,.-]/g, ""))}
                   className="text-base h-12"
                 />
               </div>
@@ -133,9 +133,9 @@ const CalculadoraPreco = () => {
                   id="margem"
                   type="text"
                   inputMode="decimal"
-                  placeholder="0,00%"
+                  placeholder="Digite a margem"
                   value={margem}
-                  onChange={(e) => handlePercentageInput(e.target.value, setMargem)}
+                  onChange={(e) => setMargem(e.target.value.replace(/[^\d,.-]/g, ""))}
                   className="text-base h-12"
                 />
               </div>
@@ -149,9 +149,9 @@ const CalculadoraPreco = () => {
                   id="taxa"
                   type="text"
                   inputMode="decimal"
-                  placeholder="0,00%"
+                  placeholder="Digite a taxa"
                   value={taxa}
-                  onChange={(e) => handlePercentageInput(e.target.value, setTaxa)}
+                  onChange={(e) => setTaxa(e.target.value.replace(/[^\d,.-]/g, ""))}
                   className="text-base h-12"
                 />
               </div>
