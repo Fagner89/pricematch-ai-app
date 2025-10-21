@@ -68,7 +68,7 @@ const ListagemMargem = () => {
       </header>
 
       {/* Main Content */}
-      <main className="pt-16 p-3 sm:p-4 pb-6 safe-area-bottom">
+      <main className="p-3 sm:p-4 pb-6 safe-area-bottom">
         <div className="max-w-2xl mx-auto space-y-3 sm:space-y-4">
           {/* Breadcrumb */}
           <Breadcrumb>

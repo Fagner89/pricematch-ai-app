@@ -150,7 +150,7 @@ const CadastroMargem = () => {
       </header>
 
       {/* Main Content */}
-      <main className="pt-16 pb-20">
+      <main className="pb-20 safe-area-bottom">
         <div className="max-w-lg mx-auto p-4">
           {/* Breadcrumb */}
           <Breadcrumb className="mb-4">

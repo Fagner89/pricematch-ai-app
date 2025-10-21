@@ -311,7 +311,7 @@ const Estoque = () => {
       </header>
 
       {/* Main Content */}
-      <main className="pt-16 p-3 sm:p-4 safe-area-bottom">{/* ... keep existing code */}
+      <main className="p-3 sm:p-4 safe-area-bottom">{/* ... keep existing code */}
         <div className="max-w-6xl mx-auto space-y-4">
           <Card>
             <CardContent className="p-4">

@@ -107,7 +107,7 @@ const CadastroPlataforma = () => {
       </header>
 
       {/* Main Content */}
-      <main className="pt-16 pb-20 safe-area-bottom">
+      <main className="pb-20 safe-area-bottom">
         <div className="max-w-lg mx-auto p-3 sm:p-4 space-y-4">
           {/* Breadcrumb */}
           <Breadcrumb>

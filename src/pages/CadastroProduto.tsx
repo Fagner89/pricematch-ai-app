@@ -657,7 +657,7 @@ const CadastroProduto = () => {
       </header>
 
       {/* Main Content */}
-      <main className="pt-16 pb-20">
+      <main className="pb-20 safe-area-bottom">
         <div className="max-w-lg mx-auto p-4">
           <Card className="shadow-lg border-0" style={{ borderRadius: "3px" }}>
             <CardContent className="p-6">

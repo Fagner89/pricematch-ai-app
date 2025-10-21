@@ -10,6 +10,7 @@ const Dashboard = () => {
   const navigate = useNavigate();
   const [nomeEmpresa, setNomeEmpresa] = useState("");
   const [vendasHoje, setVendasHoje] = useState({ total: 0, quantidade: 0 });
+  const [temLojaCadastrada, setTemLojaCadastrada] = useState(false);
   const [produtosRentabilidade, setProdutosRentabilidade] = useState<{
     maiores: Array<{ nome: string; rentabilidade: number }>;
     menores: Array<{ nome: string; rentabilidade: number }>;
@@ -19,11 +20,14 @@ const Dashboard = () => {
     const carregarDados = async () => {
       const dadosLoja = await storage.getItem("dadosLoja");
       if (dadosLoja) {
+        setTemLojaCadastrada(true);
         const loja = JSON.parse(dadosLoja);
         if (loja.nomeContato) {
           const primeiroNome = loja.nomeContato.split(' ')[0];
           setNomeEmpresa(primeiroNome);
         }
+      } else {
+        setTemLojaCadastrada(false);
       }
 
       // Carregar vendas de hoje usando novo sistema
@@ -355,15 +359,17 @@ const Dashboard = () => {
             })}
           </div>
 
-          {/* Cadastros Button */}
-          <Card className="shadow-sm hover:shadow-md transition-all duration-200 cursor-pointer" onClick={() => navigate("/cadastros")}>
-            <CardContent className="p-4 sm:p-6">
-              <div className="text-center">
-                <h3 className="font-semibold text-base text-primary">Acessar Cadastros</h3>
-                <p className="text-sm text-muted-foreground mt-1">Configure sua loja e produtos</p>
-              </div>
-            </CardContent>
-          </Card>
+          {/* Cadastros Button - só exibe se não houver loja cadastrada */}
+          {!temLojaCadastrada && (
+            <Card className="shadow-sm hover:shadow-md transition-all duration-200 cursor-pointer" onClick={() => navigate("/cadastros")}>
+              <CardContent className="p-4 sm:p-6">
+                <div className="text-center">
+                  <h3 className="font-semibold text-base text-primary">Acessar Cadastros</h3>
+                  <p className="text-sm text-muted-foreground mt-1">Configure sua loja e produtos</p>
+                </div>
+              </CardContent>
+            </Card>
+          )}
         </div>
       </main>
     </div>
