@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { ArrowLeft, Plus, Package, Pencil, Trash2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from "@/components/ui/breadcrumb";
+import { storage } from "@/lib/storage";
 
 interface Plataforma {
   id: string;
@@ -18,10 +19,13 @@ const ListagemPlataformas = () => {
   const [plataformas, setPlataformas] = useState<Plataforma[]>([]);
 
   useEffect(() => {
-    const dadosPlataformas = localStorage.getItem("plataformas");
-    if (dadosPlataformas) {
-      setPlataformas(JSON.parse(dadosPlataformas));
-    }
+    const carregarPlataformas = async () => {
+      const dadosPlataformas = await storage.getItem("plataformas");
+      if (dadosPlataformas) {
+        setPlataformas(JSON.parse(dadosPlataformas));
+      }
+    };
+    carregarPlataformas();
   }, []);
 
   const handleBack = () => {
@@ -36,10 +40,10 @@ const ListagemPlataformas = () => {
     navigate("/cadastro-plataforma", { state: { plataforma } });
   };
 
-  const handleDeletePlataforma = (id: string) => {
+  const handleDeletePlataforma = async (id: string) => {
     const updatedPlataformas = plataformas.filter(p => p.id !== id);
     setPlataformas(updatedPlataformas);
-    localStorage.setItem("plataformas", JSON.stringify(updatedPlataformas));
+    await storage.setItem("plataformas", JSON.stringify(updatedPlataformas));
     
     toast({
       title: "Plataforma removida!",

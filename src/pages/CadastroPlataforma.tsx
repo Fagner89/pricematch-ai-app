@@ -2,9 +2,9 @@ import { useState, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { ArrowLeft, Save } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { handlePercentageInput, parsePercentageToDecimal, formatPercentageInput } from "@/lib/utils";
 import { Link } from "react-router-dom";
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from "@/components/ui/breadcrumb";
 import { storage } from "@/lib/storage";
@@ -19,14 +19,20 @@ const CadastroPlataforma = () => {
 
   useEffect(() => {
     if (editPlataforma) {
-      setFormData({ nome: editPlataforma.nome, taxa: formatPercentageInput(editPlataforma.taxa.toString()) });
+      setFormData({ nome: editPlataforma.nome, taxa: editPlataforma.taxa.toString() });
     }
   }, [editPlataforma]);
 
   const savePlataforma = async () => {
     const newErrors: { [key: string]: string } = {};
     if (!formData.nome.trim()) newErrors.nome = "Nome é obrigatório";
-    if (!formData.taxa) newErrors.taxa = "Taxa é obrigatória";
+    if (!formData.taxa.trim()) newErrors.taxa = "Taxa é obrigatória";
+
+    // Validate taxa is a valid number
+    const taxaNum = parseFloat(formData.taxa.replace(',', '.'));
+    if (isNaN(taxaNum) || taxaNum < 0) {
+      newErrors.taxa = "Taxa deve ser um número válido";
+    }
 
     // Check for duplicates
     const dadosPlataformas = JSON.parse(await storage.getItem("plataformas") || "[]");
@@ -56,14 +62,14 @@ const CadastroPlataforma = () => {
         dadosPlataformas[index] = {
           ...dadosPlataformas[index],
           nome: formData.nome.trim(),
-          taxa: parsePercentageToDecimal(formData.taxa)
+          taxa: taxaNum
         };
       }
     } else {
       dadosPlataformas.push({
         id: Date.now().toString(),
         nome: formData.nome.trim(),
-        taxa: parsePercentageToDecimal(formData.taxa)
+        taxa: taxaNum
       });
     }
 
@@ -74,8 +80,8 @@ const CadastroPlataforma = () => {
   const handleSave = async () => {
     if (await savePlataforma()) {
       toast({
-        title: "Plataforma salva!",
-        description: "A plataforma foi cadastrada com sucesso"
+        title: editPlataforma ? "Plataforma atualizada!" : "Plataforma salva!",
+        description: editPlataforma ? "A plataforma foi atualizada com sucesso" : "A plataforma foi cadastrada com sucesso"
       });
       navigate("/listagem-plataformas");
     }
@@ -83,6 +89,21 @@ const CadastroPlataforma = () => {
 
   const handleBack = () => {
     navigate("/listagem-plataformas");
+  };
+
+  const handleInputChange = (field: string, value: string) => {
+    if (field === "taxa") {
+      // Allow only numbers, comma, and dot
+      const sanitizedValue = value.replace(/[^\d,.-]/g, "");
+      setFormData(prev => ({ ...prev, [field]: sanitizedValue }));
+    } else {
+      setFormData(prev => ({ ...prev, [field]: value }));
+    }
+    
+    // Remove error when user starts typing
+    if (errors[field]) {
+      setErrors(prev => ({ ...prev, [field]: "" }));
+    }
   };
 
   return (
@@ -108,10 +129,10 @@ const CadastroPlataforma = () => {
       </header>
 
       {/* Main Content */}
-      <main className="pb-20 safe-area-bottom">
-        <div className="max-w-lg mx-auto p-3 sm:p-4 space-y-4">
+      <main className="pt-16 pb-20 safe-area-bottom">
+        <div className="max-w-lg mx-auto p-4">
           {/* Breadcrumb */}
-          <Breadcrumb>
+          <Breadcrumb className="mb-4">
             <BreadcrumbList>
               <BreadcrumbItem>
                 <BreadcrumbLink asChild>
@@ -126,7 +147,13 @@ const CadastroPlataforma = () => {
               </BreadcrumbItem>
               <BreadcrumbSeparator />
               <BreadcrumbItem>
-                <BreadcrumbPage>{editPlataforma ? "Editar Plataforma" : "Cadastro de Plataforma"}</BreadcrumbPage>
+                <BreadcrumbLink asChild>
+                  <Link to="/listagem-plataformas">Plataformas</Link>
+                </BreadcrumbLink>
+              </BreadcrumbItem>
+              <BreadcrumbSeparator />
+              <BreadcrumbItem>
+                <BreadcrumbPage>{editPlataforma ? "Editar" : "Cadastrar"}</BreadcrumbPage>
               </BreadcrumbItem>
             </BreadcrumbList>
           </Breadcrumb>
@@ -134,39 +161,76 @@ const CadastroPlataforma = () => {
           <Card className="shadow-lg border-0" style={{ borderRadius: '3px' }}>
             <CardContent className="p-6">
               <div className="space-y-4">
+                {/* Nome Field */}
                 <div>
-                  <input
+                  <label className="text-sm font-medium text-foreground block mb-2">
+                    Nome da Plataforma
+                  </label>
+                  <Input
                     type="text"
                     value={formData.nome}
-                    onChange={(e) => setFormData(prev => ({ ...prev, nome: e.target.value }))}
-                    placeholder="Nome da plataforma"
-                    className={`w-full h-12 px-4 border rounded text-sm ${errors.nome ? 'border-red-500' : 'border-gray-300'}`}
-                    style={{ borderRadius: '3px', color: '#666666' }}
+                    onChange={(e) => handleInputChange("nome", e.target.value)}
+                    placeholder="Digite o nome da plataforma"
+                    className={errors.nome ? 'border-destructive' : ''}
                   />
-                  {errors.nome && <p className="text-red-500 text-xs mt-1">{errors.nome}</p>}
+                  {errors.nome && (
+                    <p className="text-destructive text-xs mt-1">{errors.nome}</p>
+                  )}
                 </div>
+
+                {/* Taxa Field */}
                 <div>
-                  <input
+                  <label className="text-sm font-medium text-foreground block mb-2">
+                    Taxa (%)
+                  </label>
+                  <Input
                     type="text"
+                    inputMode="decimal"
                     value={formData.taxa}
-                    onChange={(e) => handlePercentageInput(e.target.value, (value) => setFormData(prev => ({ ...prev, taxa: value })))}
-                    placeholder="Taxa (%)"
-                    className={`w-full h-12 px-4 border rounded text-sm ${errors.taxa ? 'border-red-500' : 'border-gray-300'}`}
-                    style={{ borderRadius: '3px', color: '#666666' }}
+                    onChange={(e) => handleInputChange("taxa", e.target.value)}
+                    placeholder="Digite a taxa"
+                    className={errors.taxa ? 'border-destructive' : ''}
                   />
-                  {errors.taxa && <p className="text-red-500 text-xs mt-1">{errors.taxa}</p>}
+                  {errors.taxa && (
+                    <p className="text-destructive text-xs mt-1">{errors.taxa}</p>
+                  )}
                 </div>
               </div>
 
-              <div className="mt-6">
-                <Button onClick={handleSave} className="w-full h-12 font-bold" style={{ backgroundColor: '#180F33', borderRadius: '3px' }}>
-                  {editPlataforma ? "Atualizar Plataforma" : "Salvar Plataforma"}
+              {/* Save Button */}
+              <div className="mt-16">
+                <Button
+                  onClick={handleSave}
+                  className="w-full h-12 font-bold"
+                  style={{ backgroundColor: "#180F33", borderRadius: "3px" }}
+                >
+                  <Save className="w-4 h-4 mr-2" />
+                  {editPlataforma ? "Salvar Alterações" : "Salvar"}
                 </Button>
               </div>
             </CardContent>
           </Card>
         </div>
       </main>
+
+      {/* Footer */}
+      <footer className="fixed bottom-0 left-0 right-0 bg-background border-t border-border p-3 sm:p-4 safe-area-bottom">
+        <div className="max-w-2xl mx-auto flex gap-3 sm:gap-4">
+          <Button
+            variant="outline"
+            onClick={handleBack}
+            className="flex-1 h-11 sm:h-12 text-sm"
+          >
+            Voltar
+          </Button>
+          <Button
+            onClick={handleSave}
+            className="flex-1 h-11 sm:h-12 text-sm font-semibold"
+          >
+            {editPlataforma ? "Atualizar" : "Salvar"}
+          </Button>
+        </div>
+      </footer>
     </div>
   );
 };
