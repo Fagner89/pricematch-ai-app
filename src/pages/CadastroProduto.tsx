@@ -280,8 +280,9 @@ const CadastroProduto = () => {
       const quantoRendeNum = parseFloat(formData.quantoRende) || 1;
       const custoUnitario = (formData.custoTotalProducao || 0) / quantoRendeNum;
 
-      const custoIndiretoDecimal = parsePercentageToDecimal(formData.custoIndireto || "0");
-      const custoComIndireto = custoUnitario * (1 + custoIndiretoDecimal / 100);
+      // Converter custo indireto de string "0,10" para decimal 0.10
+      const custoIndiretoDecimal = parseFloat(formData.custoIndireto.replace(',', '.') || "0");
+      const custoComIndireto = custoUnitario * (1 + custoIndiretoDecimal);
       const precoSugerido = custoComIndireto * (1 + margem / 100);
 
       setFormData((prev) => ({
@@ -297,8 +298,9 @@ const CadastroProduto = () => {
   // Normal: recalcula preço sugerido quando muda custo unitário/margem/custo indireto
   useEffect(() => {
     if (activeTab === "normal") {
-      const custoIndiretoDecimal = parsePercentageToDecimal(formData.custoIndireto || "0");
-      const custoComIndireto = (formData.custoUnitario || 0) * (1 + custoIndiretoDecimal / 100);
+      // Converter custo indireto de string "0,10" para decimal 0.10
+      const custoIndiretoDecimal = parseFloat(formData.custoIndireto.replace(',', '.') || "0");
+      const custoComIndireto = (formData.custoUnitario || 0) * (1 + custoIndiretoDecimal);
       const precoSugerido = custoComIndireto * (1 + margem / 100);
 
       console.log("Cálculo Preço Sugerido (Normal):", {
@@ -322,9 +324,9 @@ const CadastroProduto = () => {
     const custo = formData.custoUnitario || 0;
     const precoVenda = parseCurrencyToDecimal(formData.preco) || 0;
 
-    // considera o custo indireto
-    const custoIndiretoDecimal = parsePercentageToDecimal(formData.custoIndireto || "0");
-    const custoComIndireto = custo * (1 + custoIndiretoDecimal / 100);
+    // Converter custo indireto de string "0,10" para decimal 0.10
+    const custoIndiretoDecimal = parseFloat(formData.custoIndireto.replace(',', '.') || "0");
+    const custoComIndireto = custo * (1 + custoIndiretoDecimal);
 
     if (custoComIndireto > 0 && precoVenda > 0) {
       const percent = ((precoVenda - custoComIndireto) / precoVenda) * 100;
@@ -465,8 +467,17 @@ const CadastroProduto = () => {
   // Função auxiliar para obter o custo total de um produto (incluindo custo indireto)
   const obterCustoTotalProduto = (produto: Produto): number => {
     const custoSimples = produto.custoProducao || 0;
-    const custoIndiretoDecimal = parsePercentageToDecimal(produto.custoIndireto || "0");
-    const custoComIndireto = custoSimples * (1 + custoIndiretoDecimal / 100);
+    // Converter custo indireto de string "0,10" (ou "10%" formato antigo) para decimal
+    let custoIndiretoDecimal = 0;
+    if (produto.custoIndireto) {
+      const custoIndiretoStr = produto.custoIndireto.replace('%', '');
+      custoIndiretoDecimal = parseFloat(custoIndiretoStr.replace(',', '.') || "0");
+      // Se o valor for maior que 1, é formato antigo (10 = 10%), converter para decimal (0.10)
+      if (custoIndiretoDecimal > 1) {
+        custoIndiretoDecimal = custoIndiretoDecimal / 100;
+      }
+    }
+    const custoComIndireto = custoSimples * (1 + custoIndiretoDecimal);
     return custoComIndireto;
   };
 
@@ -506,10 +517,8 @@ const CadastroProduto = () => {
 
     const existingProdutos: Produto[] = JSON.parse(await storage.getItem("produtos") || "[]");
 
-    // Formatar custoIndireto adicionando % antes de salvar
-    const custoIndiretoFormatado = formData.custoIndireto.trim() 
-      ? formData.custoIndireto.trim() + "%" 
-      : "0%";
+    // Não adicionar % ao custo indireto, salvar como está
+    const custoIndiretoFormatado = formData.custoIndireto.trim() || "0";
 
     const produtoData: Produto = {
       id: isEditing ? id! : Date.now().toString(),
@@ -612,8 +621,9 @@ const CadastroProduto = () => {
   };
 
   const calcularRentabilidade = (valorFinal: number) => {
-    const custoIndiretoDecimal = parsePercentageToDecimal(formData.custoIndireto || "0");
-    const custoComIndireto = (formData.custoUnitario || 0) * (1 + custoIndiretoDecimal / 100);
+    // Converter custo indireto de string "0,10" para decimal 0.10
+    const custoIndiretoDecimal = parseFloat(formData.custoIndireto.replace(',', '.') || "0");
+    const custoComIndireto = (formData.custoUnitario || 0) * (1 + custoIndiretoDecimal);
     
     if (valorFinal <= 0) return 0;
     
@@ -779,7 +789,7 @@ const CadastroProduto = () => {
                 <TabsContent value="normal" className="space-y-4">
                   {/* Custo Indireto */}
                   <div className="text-center p-4 border border-border rounded-sm">
-                    <div className="text-sm text-muted-foreground">Custo Indireto (%)</div>
+                    <div className="text-sm text-muted-foreground">Custo Indireto</div>
                     <input
                       type="text"
                       inputMode="decimal"
@@ -792,10 +802,10 @@ const CadastroProduto = () => {
                         setFormData((prev) => ({ ...prev, custoIndireto: value }));
                       }}
                       className="mt-2 w-full h-10 px-3 border border-border rounded-sm text-sm text-foreground text-center"
-                      placeholder="Ex: 10,0"
+                      placeholder="Ex: 0,10"
                     />
                     <p className="text-xs text-muted-foreground mt-2">
-                      Percentual aplicado sobre o custo unitário para despesas indiretas.
+                      Valor decimal aplicado sobre o custo unitário para despesas indiretas (Ex: 0,10 = 10%).
                     </p>
                   </div>
 
@@ -810,13 +820,13 @@ const CadastroProduto = () => {
                       <div className="flex justify-between">
                         <span>+ Custo Indireto ({formData.custoIndireto}):</span>
                         <span className="font-medium">
-                          {formatCurrency((formData.custoUnitario || 0) * (parsePercentageToDecimal(formData.custoIndireto || "0") / 100))}
+                          {formatCurrency((formData.custoUnitario || 0) * parseFloat(formData.custoIndireto.replace(',', '.') || "0"))}
                         </span>
                       </div>
                       <div className="flex justify-between border-t border-blue-300 pt-1">
                         <span>Custo Total:</span>
                         <span className="font-medium">
-                          {formatCurrency((formData.custoUnitario || 0) * (1 + parsePercentageToDecimal(formData.custoIndireto || "0") / 100))}
+                          {formatCurrency((formData.custoUnitario || 0) * (1 + parseFloat(formData.custoIndireto.replace(',', '.') || "0")))}
                         </span>
                       </div>
                       <div className="flex justify-between">
@@ -1004,7 +1014,7 @@ const CadastroProduto = () => {
                       {/* Custo Indireto (%) também na Ficha Técnica */}
                       <div className="mt-4">
                         <div className="text-center p-4 border border-border rounded-sm">
-                          <div className="text-sm text-muted-foreground">Custo Indireto (%)</div>
+                          <div className="text-sm text-muted-foreground">Custo Indireto</div>
                           <input
                             type="text"
                             inputMode="decimal"
@@ -1017,10 +1027,10 @@ const CadastroProduto = () => {
                               setFormData(prev => ({ ...prev, custoIndireto: value }));
                             }}
                             className="mt-2 w-full h-10 px-3 border border-border rounded-sm text-sm text-foreground text-center"
-                            placeholder="Ex: 10,0"
+                            placeholder="Ex: 0,10"
                           />
                           <p className="text-xs text-muted-foreground mt-2">
-                            Percentual aplicado sobre o custo unitário para despesas indiretas.
+                            Valor decimal aplicado sobre o custo unitário para despesas indiretas (Ex: 0,10 = 10%).
                           </p>
                         </div>
                       </div>
@@ -1047,13 +1057,13 @@ const CadastroProduto = () => {
                           <div className="flex justify-between">
                             <span>+ Custo Indireto ({formData.custoIndireto}):</span>
                             <span className="font-medium">
-                              {formatCurrency((formData.custoUnitario || 0) * (1 + parsePercentageToDecimal(formData.custoIndireto || "0") / 100))}
+                              {formatCurrency((formData.custoUnitario || 0) * parseFloat(formData.custoIndireto.replace(',', '.') || "0"))}
                             </span>
                           </div>
                           <div className="flex justify-between border-t border-blue-300 pt-1">
                             <span>Custo Total:</span>
                             <span className="font-medium">
-                              {formatCurrency((formData.custoUnitario || 0) * (1 + parsePercentageToDecimal(formData.custoIndireto || "0") / 100))}
+                              {formatCurrency((formData.custoUnitario || 0) * (1 + parseFloat(formData.custoIndireto.replace(',', '.') || "0")))}
                             </span>
                           </div>
                           <div className="flex justify-between">
