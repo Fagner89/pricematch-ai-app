@@ -915,14 +915,14 @@ const CadastroProduto = () => {
                                 itemId: insumo.id,
                                 itemNome: insumo.nome,
                                 itemTipo: "insumo",
-                                quantidade: parseFloat(quantidadeTemp),
+                                quantidade: parseFloat(quantidadeTemp.replace(',', '.')),
                                 unidade: insumo.unidade,
                                 custoUnitarioCalculado: precoUnitario
                               });
                             }}
                             size="sm"
                             className="bg-primary text-primary-foreground hover:bg-primary/90"
-                            disabled={!quantidadeTemp || parseFloat(quantidadeTemp) <= 0}
+                            disabled={!quantidadeTemp || parseFloat(quantidadeTemp.replace(',', '.')) <= 0}
                           >
                             Adicionar
                           </Button>
@@ -951,13 +951,13 @@ const CadastroProduto = () => {
                               itemId: produto.id,
                               itemNome: produto.nome,
                               itemTipo: produto.tipo === "intermediario" ? "produto_intermediario" : "produto_final",
-                              quantidade: parseFloat(quantidadeTemp),
+                              quantidade: parseFloat(quantidadeTemp.replace(',', '.')),
                               unidade: produto.unidadeMedida,
                               custoUnitarioCalculado: obterCustoTotalProduto(produto)
                             })}
                             size="sm"
                             className="bg-primary text-primary-foreground hover:bg-primary/90"
-                            disabled={!quantidadeTemp || parseFloat(quantidadeTemp) <= 0}
+                            disabled={!quantidadeTemp || parseFloat(quantidadeTemp.replace(',', '.')) <= 0}
                           >
                             Adicionar
                           </Button>
