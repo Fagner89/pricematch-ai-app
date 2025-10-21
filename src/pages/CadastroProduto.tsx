@@ -1193,7 +1193,7 @@ const CadastroProduto = () => {
             Voltar
           </Button>
           <Button onClick={handleSave} className="flex-1 h-11 sm:h-12 text-sm font-semibold">
-            Salvar
+            {isEditing ? "Atualizar" : "Salvar"}
           </Button>
         </div>
       </footer>
