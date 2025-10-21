@@ -91,20 +91,22 @@ const ListagemProdutos = () => {
   
     // Busca custo indireto salvo no produto ou no padrão
     const saved = localStorage.getItem("margem");
-    let custoIndiretoPercent = 0;
+    let custoIndiretoDecimal = 0;
     try {
       if (produto.custoIndireto) {
-        custoIndiretoPercent = parsePercentageToDecimal(produto.custoIndireto);
+        // Custo indireto já está em formato "30,00" (representando 30%)
+        custoIndiretoDecimal = parseFloat(produto.custoIndireto.replace(',', '.') || "0") / 100;
       } else if (saved) {
         const parsed = JSON.parse(saved);
-        custoIndiretoPercent = parsePercentageToDecimal(parsed?.custoIndireto || "0");
+        const custoIndiretoStr = parsed?.custoIndireto || "0";
+        custoIndiretoDecimal = parseFloat(custoIndiretoStr.replace(',', '.') || "0") / 100;
       }
     } catch {
-      custoIndiretoPercent = 0;
+      custoIndiretoDecimal = 0;
     }
   
     // Aplica custo indireto
-    const custoComIndireto = custo * (1 + custoIndiretoPercent / 100);
+    const custoComIndireto = custo * (1 + custoIndiretoDecimal);
   
     // Calcula rentabilidade
     const percent = ((preco - custoComIndireto) / preco) * 100;
