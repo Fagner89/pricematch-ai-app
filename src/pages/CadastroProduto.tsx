@@ -818,7 +818,7 @@ const CadastroProduto = () => {
                         <span className="font-medium">{formatCurrency(formData.custoUnitario || 0)}</span>
                       </div>
                       <div className="flex justify-between">
-                        <span>+ Custo Indireto ({formData.custoIndireto}):</span>
+                        <span>+ Custo Indireto ({(parseFloat(formData.custoIndireto.replace(',', '.') || "0") * 100).toFixed(2).replace('.', ',')}%):</span>
                         <span className="font-medium">
                           {formatCurrency((formData.custoUnitario || 0) * parseFloat(formData.custoIndireto.replace(',', '.') || "0"))}
                         </span>
@@ -1055,7 +1055,7 @@ const CadastroProduto = () => {
                             <span className="font-medium">{formatCurrency(formData.custoUnitario || 0)}</span>
                           </div>
                           <div className="flex justify-between">
-                            <span>+ Custo Indireto ({formData.custoIndireto}):</span>
+                            <span>+ Custo Indireto ({(parseFloat(formData.custoIndireto.replace(',', '.') || "0") * 100).toFixed(2).replace('.', ',')}%):</span>
                             <span className="font-medium">
                               {formatCurrency((formData.custoUnitario || 0) * parseFloat(formData.custoIndireto.replace(',', '.') || "0"))}
                             </span>
