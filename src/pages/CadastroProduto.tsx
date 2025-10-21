@@ -103,7 +103,7 @@ const CadastroProduto = () => {
     custoTotalProducao: 0,
     custoUnitario: 0,
     precoSugerido: 0,
-    custoIndireto: "0,0%",
+    custoIndireto: "0,00",
   });
 
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
@@ -123,6 +123,24 @@ const CadastroProduto = () => {
   const [canaisVenda, setCanaisVenda] = useState<CanalVenda[]>([]);
   const [showExitDialog, setShowExitDialog] = useState(false);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+
+  // Formata para máscara decimal com 2 casas (entrada como "0,10" ou "%")
+  const formatDecimalMask = (value: string) => {
+    if (!value) return "0,00";
+    // Se vier com %, converter percent -> decimal (10% => 0,10)
+    if (value.includes("%")) {
+      const percent = parsePercentageToDecimal(value) || 0;
+      const dec = Math.max(0, percent) / 100;
+      return dec.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    }
+    let v = value.replace(/[^\d,]/g, "");
+    if (v === "") return "0,00";
+    let [int = "0", dec = ""] = v.split(",");
+    if (int === "") int = "0";
+    if (dec.length > 2) dec = dec.slice(0, 2);
+    while (dec.length < 2) dec += "0";
+    return `${int},${dec}`;
+  };
 
   // Carrega dados base (insumos, produtos, margem padrão, produto em edição)
   useEffect(() => {
@@ -168,10 +186,10 @@ const CadastroProduto = () => {
             return value.replace(/[^\d,.-]/g, "");
           };
           
-          setDefaultCustoIndireto(formatForDisplay(margemData.custoIndireto || "0"));
+          setDefaultCustoIndireto(formatDecimalMask(margemData.custoIndireto || "0%"));
           setFormData((prev) => ({
             ...prev,
-            custoIndireto: formatForDisplay(margemData.custoIndireto || "0"),
+            custoIndireto: formatDecimalMask(margemData.custoIndireto || "0%"),
           }));
         } catch (error) {
           console.error("Erro ao carregar margem:", error);
@@ -204,7 +222,7 @@ const CadastroProduto = () => {
             custoTotalProducao: produto.custoProducao || 0,
             custoUnitario: produto.custoProducao || 0,
             precoSugerido: produto.precoVenda || 0,
-            custoIndireto: formatForDisplay(produto.custoIndireto ?? margemData?.custoIndireto ?? defaultCustoIndireto),
+            custoIndireto: formatDecimalMask(produto.custoIndireto ?? margemData?.custoIndireto ?? defaultCustoIndireto),
           });
           setCustoUnitarioInput((produto.custoProducao || 0).toLocaleString('pt-BR', {
             minimumFractionDigits: 2,
@@ -576,7 +594,7 @@ const CadastroProduto = () => {
         custoTotalProducao: 0,
         custoUnitario: 0,
         precoSugerido: 0,
-        custoIndireto: defaultCustoIndireto,
+        custoIndireto: formatDecimalMask(defaultCustoIndireto || "0,00"),
       });
       setComponentesDoProduto([]); // Limpar componentes
       setInsumosVinculados([]); // Limpar insumos vinculados (compatibilidade)
@@ -791,7 +809,7 @@ const CadastroProduto = () => {
                 <TabsContent value="normal" className="space-y-4">
                   {/* Custo Indireto */}
                   <div className="text-center p-4 border border-border rounded-sm">
-                    <div className="text-sm text-muted-foreground">Custo Indireto</div>
+                    <div className="text-sm text-muted-foreground">Custo Indireto (%)</div>
                     <input
                       type="text"
                       inputMode="decimal"
@@ -801,10 +819,13 @@ const CadastroProduto = () => {
                         const parts = value.split(",");
                         if (parts.length > 2) return;
                         if (parts[1] && parts[1].length > 2) return;
-                        setFormData((prev) => ({ ...prev, custoIndireto: value }));
+                        // Não permitir valores iniciando com "," sozinho
+                        const normalized = value.startsWith(",") ? `0${value}` : value;
+                        setFormData((prev) => ({ ...prev, custoIndireto: normalized }));
                       }}
                       className="mt-2 w-full h-10 px-3 border border-border rounded-sm text-sm text-foreground text-center"
-                      placeholder="Ex: 0,10"
+                      placeholder="0,00"
+                      onBlur={() => setFormData(prev => ({ ...prev, custoIndireto: formatDecimalMask(prev.custoIndireto) }))}
                     />
                     <p className="text-xs text-muted-foreground mt-2">
                       Valor decimal aplicado sobre o custo unitário para despesas indiretas (Ex: 0,10 = 10%).
@@ -834,7 +855,7 @@ const CadastroProduto = () => {
                       <div className="flex justify-between">
                         <span>+ Margem ({formatPercentage(margem)}%):</span>
                         <span className="font-medium">
-                          {formatCurrency(((formData.custoUnitario || 0) * (1 + parsePercentageToDecimal(formData.custoIndireto || "0") / 100)) * (margem / 100))}
+                          {formatCurrency(((formData.custoUnitario || 0) * (1 + parseFloat(formData.custoIndireto.replace(',', '.') || "0"))) * (margem / 100))}
                         </span>
                       </div>
                       <div className="flex justify-between border-t border-blue-300 pt-1 font-bold">
@@ -1018,7 +1039,7 @@ const CadastroProduto = () => {
                       {/* Custo Indireto (%) também na Ficha Técnica */}
                       <div className="mt-4">
                         <div className="text-center p-4 border border-border rounded-sm">
-                          <div className="text-sm text-muted-foreground">Custo Indireto</div>
+                          <div className="text-sm text-muted-foreground">Custo Indireto (%)</div>
                           <input
                             type="text"
                             inputMode="decimal"
@@ -1028,10 +1049,12 @@ const CadastroProduto = () => {
                               const parts = value.split(",");
                               if (parts.length > 2) return;
                               if (parts[1] && parts[1].length > 2) return;
-                              setFormData(prev => ({ ...prev, custoIndireto: value }));
+                              const normalized = value.startsWith(",") ? `0${value}` : value;
+                              setFormData(prev => ({ ...prev, custoIndireto: normalized }));
                             }}
                             className="mt-2 w-full h-10 px-3 border border-border rounded-sm text-sm text-foreground text-center"
-                            placeholder="Ex: 0,10"
+                            placeholder="0,00"
+                            onBlur={() => setFormData(prev => ({ ...prev, custoIndireto: formatDecimalMask(prev.custoIndireto) }))}
                           />
                           <p className="text-xs text-muted-foreground mt-2">
                             Valor decimal aplicado sobre o custo unitário para despesas indiretas (Ex: 0,10 = 10%).
@@ -1073,7 +1096,7 @@ const CadastroProduto = () => {
                           <div className="flex justify-between">
                             <span>+ Margem ({formatPercentage(margem)}%):</span>
                             <span className="font-medium">
-                              {formatCurrency(((formData.custoUnitario || 0) * (1 + parsePercentageToDecimal(formData.custoIndireto || "0") / 100)) * (margem / 100))}
+                              {formatCurrency(((formData.custoUnitario || 0) * (1 + parseFloat(formData.custoIndireto.replace(',', '.') || "0"))) * (margem / 100))}
                             </span>
                           </div>
                           <div className="flex justify-between border-t border-blue-300 pt-1 font-bold">
