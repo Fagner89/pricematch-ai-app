@@ -126,14 +126,13 @@ const CadastroProduto = () => {
   const [showExitDialog, setShowExitDialog] = useState(false);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
 
-  // Formata para máscara decimal com 2 casas (entrada como "0,10" ou "%")
+  // Formata para máscara decimal com 2 casas (entrada como "30,00" para 30%)
   const formatDecimalMask = (value: string) => {
     if (!value) return "0,00";
-    // Se vier com %, converter percent -> decimal (10% => 0,10)
+    // Se vier com %, remover o % e manter o valor como percentual (30% => 30,00)
     if (value.includes("%")) {
       const percent = parsePercentageToDecimal(value) || 0;
-      const dec = Math.max(0, percent) / 100;
-      return dec.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+      return percent.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
     }
     let v = value.replace(/[^\d,]/g, "");
     if (v === "") return "0,00";
@@ -302,8 +301,8 @@ const CadastroProduto = () => {
       const quantoRendeNum = parseFloat(formData.quantoRende) || 1;
       const custoUnitario = (formData.custoTotalProducao || 0) / quantoRendeNum;
 
-      // Converter custo indireto de string "0,10" para decimal 0.10
-      const custoIndiretoDecimal = parseFloat(formData.custoIndireto.replace(',', '.') || "0");
+      // Converter custo indireto de string "30,00" (percentual) para decimal 0.30
+      const custoIndiretoDecimal = parseFloat(formData.custoIndireto.replace(',', '.') || "0") / 100;
       const custoComIndireto = custoUnitario * (1 + custoIndiretoDecimal);
       const precoSugerido = custoComIndireto * (1 + margem / 100);
 
@@ -320,8 +319,8 @@ const CadastroProduto = () => {
   // Normal: recalcula preço sugerido quando muda custo unitário/margem/custo indireto
   useEffect(() => {
     if (activeTab === "normal") {
-      // Converter custo indireto de string "0,10" para decimal 0.10
-      const custoIndiretoDecimal = parseFloat(formData.custoIndireto.replace(',', '.') || "0");
+      // Converter custo indireto de string "30,00" (percentual) para decimal 0.30
+      const custoIndiretoDecimal = parseFloat(formData.custoIndireto.replace(',', '.') || "0") / 100;
       const custoComIndireto = (formData.custoUnitario || 0) * (1 + custoIndiretoDecimal);
       const precoSugerido = custoComIndireto * (1 + margem / 100);
 
@@ -346,8 +345,8 @@ const CadastroProduto = () => {
     const custo = formData.custoUnitario || 0;
     const precoVenda = parseCurrencyToDecimal(formData.preco) || 0;
 
-    // Converter custo indireto de string "0,10" para decimal 0.10
-    const custoIndiretoDecimal = parseFloat(formData.custoIndireto.replace(',', '.') || "0");
+    // Converter custo indireto de string "30,00" (percentual) para decimal 0.30
+    const custoIndiretoDecimal = parseFloat(formData.custoIndireto.replace(',', '.') || "0") / 100;
     const custoComIndireto = custo * (1 + custoIndiretoDecimal);
 
     if (custoComIndireto > 0 && precoVenda > 0) {
@@ -643,8 +642,8 @@ const CadastroProduto = () => {
   };
 
   const calcularRentabilidade = (valorFinal: number) => {
-    // Converter custo indireto de string "0,10" para decimal 0.10
-    const custoIndiretoDecimal = parseFloat(formData.custoIndireto.replace(',', '.') || "0");
+    // Converter custo indireto de string "30,00" (percentual) para decimal 0.30
+    const custoIndiretoDecimal = parseFloat(formData.custoIndireto.replace(',', '.') || "0") / 100;
     const custoComIndireto = (formData.custoUnitario || 0) * (1 + custoIndiretoDecimal);
     
     if (valorFinal <= 0) return 0;
@@ -824,7 +823,7 @@ const CadastroProduto = () => {
                       placeholder="0,00"
                     />
                     <p className="text-xs text-muted-foreground mt-2">
-                      Valor decimal aplicado sobre o custo unitário para despesas indiretas (Ex: 0,10 = 10%).
+                      Percentual aplicado sobre o custo unitário para despesas indiretas (Ex: 10,00 = 10%).
                     </p>
                   </div>
 
@@ -837,21 +836,21 @@ const CadastroProduto = () => {
                         <span className="font-medium">{formatCurrency(formData.custoUnitario || 0)}</span>
                       </div>
                       <div className="flex justify-between">
-                        <span>+ Custo Indireto ({(parseFloat(formData.custoIndireto.replace(',', '.') || "0") * 100).toFixed(2).replace('.', ',')}%):</span>
+                        <span>+ Custo Indireto ({parseFloat(formData.custoIndireto.replace(',', '.') || "0").toFixed(2).replace('.', ',')}%):</span>
                         <span className="font-medium">
-                          {formatCurrency((formData.custoUnitario || 0) * parseFloat(formData.custoIndireto.replace(',', '.') || "0"))}
+                          {formatCurrency((formData.custoUnitario || 0) * parseFloat(formData.custoIndireto.replace(',', '.') || "0") / 100)}
                         </span>
                       </div>
                       <div className="flex justify-between border-t border-blue-300 pt-1">
                         <span>Custo Total:</span>
                         <span className="font-medium">
-                          {formatCurrency((formData.custoUnitario || 0) * (1 + parseFloat(formData.custoIndireto.replace(',', '.') || "0")))}
+                          {formatCurrency((formData.custoUnitario || 0) * (1 + parseFloat(formData.custoIndireto.replace(',', '.') || "0") / 100))}
                         </span>
                       </div>
                       <div className="flex justify-between">
                         <span>+ Margem ({formatPercentage(margem)}%):</span>
                         <span className="font-medium">
-                          {formatCurrency(((formData.custoUnitario || 0) * (1 + parseFloat(formData.custoIndireto.replace(',', '.') || "0"))) * (margem / 100))}
+                          {formatCurrency(((formData.custoUnitario || 0) * (1 + parseFloat(formData.custoIndireto.replace(',', '.') || "0") / 100)) * (margem / 100))}
                         </span>
                       </div>
                       <div className="flex justify-between border-t border-blue-300 pt-1 font-bold">
@@ -1047,7 +1046,7 @@ const CadastroProduto = () => {
                             placeholder="0,00"
                           />
                           <p className="text-xs text-muted-foreground mt-2">
-                            Valor decimal aplicado sobre o custo unitário para despesas indiretas (Ex: 0,10 = 10%).
+                            Percentual aplicado sobre o custo unitário para despesas indiretas (Ex: 10,00 = 10%).
                           </p>
                         </div>
                       </div>
@@ -1072,21 +1071,21 @@ const CadastroProduto = () => {
                             <span className="font-medium">{formatCurrency(formData.custoUnitario || 0)}</span>
                           </div>
                           <div className="flex justify-between">
-                            <span>+ Custo Indireto ({(parseFloat(formData.custoIndireto.replace(',', '.') || "0") * 100).toFixed(2).replace('.', ',')}%):</span>
+                            <span>+ Custo Indireto ({parseFloat(formData.custoIndireto.replace(',', '.') || "0").toFixed(2).replace('.', ',')}%):</span>
                             <span className="font-medium">
-                              {formatCurrency((formData.custoUnitario || 0) * parseFloat(formData.custoIndireto.replace(',', '.') || "0"))}
+                              {formatCurrency((formData.custoUnitario || 0) * parseFloat(formData.custoIndireto.replace(',', '.') || "0") / 100)}
                             </span>
                           </div>
                           <div className="flex justify-between border-t border-blue-300 pt-1">
                             <span>Custo Total:</span>
                             <span className="font-medium">
-                              {formatCurrency((formData.custoUnitario || 0) * (1 + parseFloat(formData.custoIndireto.replace(',', '.') || "0")))}
+                              {formatCurrency((formData.custoUnitario || 0) * (1 + parseFloat(formData.custoIndireto.replace(',', '.') || "0") / 100))}
                             </span>
                           </div>
                           <div className="flex justify-between">
                             <span>+ Margem ({formatPercentage(margem)}%):</span>
                             <span className="font-medium">
-                              {formatCurrency(((formData.custoUnitario || 0) * (1 + parseFloat(formData.custoIndireto.replace(',', '.') || "0"))) * (margem / 100))}
+                              {formatCurrency(((formData.custoUnitario || 0) * (1 + parseFloat(formData.custoIndireto.replace(',', '.') || "0") / 100)) * (margem / 100))}
                             </span>
                           </div>
                           <div className="flex justify-between border-t border-blue-300 pt-1 font-bold">
