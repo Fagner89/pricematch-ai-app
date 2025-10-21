@@ -288,12 +288,22 @@ const CadastroProduto = () => {
     if (componentesDoProduto.length > 0) {
       const custoComponentes = calcularCustoTotalProduto(componentesDoProduto, insumos, produtosDisponiveis);
       setFormData((prev) => ({ ...prev, custoTotalProducao: custoComponentes }));
+      
+      // Preenche o campo "Custo" na ficha técnica com o Total do Custo de Produção
+      if (activeTab === "ficha") {
+        setFormData((prev) => ({ ...prev, preco: custoComponentes.toFixed(2).replace('.', ',') }));
+      }
     } else {
       // Fallback para estrutura legada
       const custoInsumos = insumosVinculados.reduce((total, item) => total + item.quantidade * item.preco, 0);
       setFormData((prev) => ({ ...prev, custoTotalProducao: custoInsumos }));
+      
+      // Preenche o campo "Custo" na ficha técnica com o Total do Custo de Produção
+      if (activeTab === "ficha") {
+        setFormData((prev) => ({ ...prev, preco: custoInsumos.toFixed(2).replace('.', ',') }));
+      }
     }
-  }, [componentesDoProduto, insumosVinculados, insumos, produtosDisponiveis]);
+  }, [componentesDoProduto, insumosVinculados, insumos, produtosDisponiveis, activeTab]);
 
   // Ficha Técnica: calcula custo unitário e preço sugerido (considera custo indireto e margem)
   useEffect(() => {
@@ -366,6 +376,17 @@ const CadastroProduto = () => {
       }
     }
   }, [formData.preco, formData.custoUnitario, activeTab]);
+
+  // Atualiza custoUnitario na ficha técnica quando o usuário editar manualmente o campo "Custo"
+  useEffect(() => {
+    if (activeTab === "ficha") {
+      const custoEditado = parseCurrencyToDecimal(formData.preco) || 0;
+      // Atualiza custoTotalProducao com o valor editado manualmente
+      if (custoEditado > 0) {
+        setFormData(prev => ({ ...prev, custoTotalProducao: custoEditado }));
+      }
+    }
+  }, [formData.preco, activeTab]);
 
   // Garante máscara de moeda ao entrar na aba Normal
   useEffect(() => {
