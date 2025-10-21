@@ -11,7 +11,7 @@ const Index = () => {
 
   return (
     <div 
-      className="min-h-screen relative flex flex-col justify-between items-center px-4 sm:px-6 py-6 sm:py-8 safe-area"
+      className="min-h-screen relative flex flex-col justify-between items-center px-4 sm:px-6 py-4 safe-area"
       style={{
         backgroundImage: `url('/lovable-uploads/precificai.jpg')`,
         backgroundSize: 'cover',
@@ -23,7 +23,7 @@ const Index = () => {
       <div className="absolute inset-0 bg-black/20"></div>
       
       {/* Logo Section */}
-      <div className="relative z-10 pt-8 sm:pt-16">
+      <div className="relative z-10">
         <PrecificaLogo />
       </div>
       
