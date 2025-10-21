@@ -287,21 +287,25 @@ const CadastroProduto = () => {
     // Usar nova estrutura de componentes se disponível, senão usar estrutura legada
     if (componentesDoProduto.length > 0) {
       const custoComponentes = calcularCustoTotalProduto(componentesDoProduto, insumos, produtosDisponiveis);
-      setFormData((prev) => ({ ...prev, custoTotalProducao: custoComponentes }));
-      
-      // Preenche o campo "Custo" na ficha técnica com o Total do Custo de Produção
-      if (activeTab === "ficha") {
-        setFormData((prev) => ({ ...prev, preco: custoComponentes.toFixed(2).replace('.', ',') }));
-      }
+      setFormData((prev) => ({ 
+        ...prev, 
+        custoTotalProducao: custoComponentes,
+        // Só preenche o campo "Custo" se estiver na aba ficha E o campo estiver vazio ou for "0,00"
+        ...(activeTab === "ficha" && (!prev.preco || prev.preco === "0,00") 
+          ? { preco: custoComponentes.toFixed(2).replace('.', ',') } 
+          : {})
+      }));
     } else {
       // Fallback para estrutura legada
       const custoInsumos = insumosVinculados.reduce((total, item) => total + item.quantidade * item.preco, 0);
-      setFormData((prev) => ({ ...prev, custoTotalProducao: custoInsumos }));
-      
-      // Preenche o campo "Custo" na ficha técnica com o Total do Custo de Produção
-      if (activeTab === "ficha") {
-        setFormData((prev) => ({ ...prev, preco: custoInsumos.toFixed(2).replace('.', ',') }));
-      }
+      setFormData((prev) => ({ 
+        ...prev, 
+        custoTotalProducao: custoInsumos,
+        // Só preenche o campo "Custo" se estiver na aba ficha E o campo estiver vazio ou for "0,00"
+        ...(activeTab === "ficha" && (!prev.preco || prev.preco === "0,00") 
+          ? { preco: custoInsumos.toFixed(2).replace('.', ',') } 
+          : {})
+      }));
     }
   }, [componentesDoProduto, insumosVinculados, insumos, produtosDisponiveis, activeTab]);
 
@@ -377,12 +381,12 @@ const CadastroProduto = () => {
     }
   }, [formData.preco, formData.custoUnitario, activeTab]);
 
-  // Atualiza custoUnitario na ficha técnica quando o usuário editar manualmente o campo "Custo"
+  // Atualiza custoTotalProducao na ficha técnica quando o usuário editar manualmente o campo "Custo"
   useEffect(() => {
-    if (activeTab === "ficha") {
-      const custoEditado = parseCurrencyToDecimal(formData.preco) || 0;
-      // Atualiza custoTotalProducao com o valor editado manualmente
-      if (custoEditado > 0) {
+    if (activeTab === "ficha" && formData.preco) {
+      const custoEditado = parseCurrencyToDecimal(formData.preco);
+      // Só atualiza se o valor for diferente do custoTotalProducao atual
+      if (custoEditado !== formData.custoTotalProducao) {
         setFormData(prev => ({ ...prev, custoTotalProducao: custoEditado }));
       }
     }
