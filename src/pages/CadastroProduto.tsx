@@ -24,6 +24,7 @@ import {
   formatPercentage,
 } from "@/lib/utils";
 import { formatCentsToBRL } from "@/lib/monetary";
+import { storage } from "@/lib/storage";
 
 interface Insumo {
   id: string;
@@ -125,117 +126,119 @@ const CadastroProduto = () => {
 
   // Carrega dados base (insumos, produtos, margem padrão, produto em edição)
   useEffect(() => {
-    // insumos
-    const savedInsumos = JSON.parse(localStorage.getItem("insumos") || "[]");
-    setInsumos(savedInsumos);
-    
-    // produtos disponíveis (para usar como componentes)
-    const savedProdutos = JSON.parse(localStorage.getItem("produtos") || "[]");
-    // Filtra para não incluir o próprio produto em edição na lista de componentes selecionáveis
-    const produtosParaComponentes = savedProdutos.filter((p: Produto) => p.id !== id);
-    setProdutosDisponiveis(produtosParaComponentes);
-    
-    // unidades de medida
-    const storedUnidades = JSON.parse(localStorage.getItem("unidades") || "[]");
-    const unidadeOptions = storedUnidades.map((unidade: any) => unidade.sigla);
-    
-    setUnidadesMedida(unidadeOptions);
-    
-    // plataformas
-    const savedPlataformas = JSON.parse(localStorage.getItem("plataformas") || "[]");
-    console.log("Plataformas carregadas:", savedPlataformas);
-    setPlataformas(savedPlataformas);
-    
+    (async () => {
+      // insumos
+      const savedInsumos = JSON.parse(await storage.getItem("insumos") || "[]");
+      setInsumos(savedInsumos);
+      
+      // produtos disponíveis (para usar como componentes)
+      const savedProdutos = JSON.parse(await storage.getItem("produtos") || "[]");
+      // Filtra para não incluir o próprio produto em edição na lista de componentes selecionáveis
+      const produtosParaComponentes = savedProdutos.filter((p: Produto) => p.id !== id);
+      setProdutosDisponiveis(produtosParaComponentes);
+      
+      // unidades de medida
+      const storedUnidades = JSON.parse(await storage.getItem("unidades") || "[]");
+      const unidadeOptions = storedUnidades.map((unidade: any) => unidade.sigla);
+      
+      setUnidadesMedida(unidadeOptions);
+      
+      // plataformas
+      const savedPlataformas = JSON.parse(await storage.getItem("plataformas") || "[]");
+      console.log("Plataformas carregadas:", savedPlataformas);
+      setPlataformas(savedPlataformas);
+      
 
-    // margem padrão
-    const savedMargem = localStorage.getItem("margem");
-    let margemData: any = null;
-    if (savedMargem) {
-      try {
-        margemData = JSON.parse(savedMargem);
-        const hasValidMargem = margemData && 
-          margemData.margem && 
-          margemData.margem.trim() !== "" && 
-          margemData.margemDecimal !== undefined;
-        setMargemCadastrada(hasValidMargem);
-        setMargem(margemData.margemDecimal || 0);
-        
-        // Função para remover % do valor padrão
-        const formatForDisplay = (value: string) => {
-          if (!value) return "";
-          return value.replace(/[^\d,.-]/g, "");
-        };
-        
-        setDefaultCustoIndireto(formatForDisplay(margemData.custoIndireto || "0"));
-        setFormData((prev) => ({
-          ...prev,
-          custoIndireto: formatForDisplay(margemData.custoIndireto || "0"),
-        }));
-      } catch (error) {
-        console.error("Erro ao carregar margem:", error);
+      // margem padrão
+      const savedMargem = await storage.getItem("margem");
+      let margemData: any = null;
+      if (savedMargem) {
+        try {
+          margemData = JSON.parse(savedMargem);
+          const hasValidMargem = margemData && 
+            margemData.margem && 
+            margemData.margem.trim() !== "" && 
+            margemData.margemDecimal !== undefined;
+          setMargemCadastrada(hasValidMargem);
+          setMargem(margemData.margemDecimal || 0);
+          
+          // Função para remover % do valor padrão
+          const formatForDisplay = (value: string) => {
+            if (!value) return "";
+            return value.replace(/[^\d,.-]/g, "");
+          };
+          
+          setDefaultCustoIndireto(formatForDisplay(margemData.custoIndireto || "0"));
+          setFormData((prev) => ({
+            ...prev,
+            custoIndireto: formatForDisplay(margemData.custoIndireto || "0"),
+          }));
+        } catch (error) {
+          console.error("Erro ao carregar margem:", error);
+          setMargemCadastrada(false);
+        }
+      } else {
         setMargemCadastrada(false);
       }
-    } else {
-      setMargemCadastrada(false);
-    }
 
-    // produto (edição)
-    if (isEditing && id) {
-      const produto: Produto | undefined = savedProdutos.find((p: Produto) => p.id === id);
-      if (produto) {
-        // Função para remover % do valor
-        const formatForDisplay = (value: string) => {
-          if (!value) return "";
-          return value.replace(/[^\d,.-]/g, "");
-        };
+      // produto (edição)
+      if (isEditing && id) {
+        const produto: Produto | undefined = savedProdutos.find((p: Produto) => p.id === id);
+        if (produto) {
+          // Função para remover % do valor
+          const formatForDisplay = (value: string) => {
+            if (!value) return "";
+            return value.replace(/[^\d,.-]/g, "");
+          };
 
-        setFormData({
-          nome: produto.nome,
-          codigo: produto.codigo || "",
-          unidadeMedida: produto.unidadeMedida,
-          tipo: produto.tipo || "final", // Carrega o tipo do produto
-          preco: (produto.custoProducao || 0).toLocaleString('pt-BR', {
+          setFormData({
+            nome: produto.nome,
+            codigo: produto.codigo || "",
+            unidadeMedida: produto.unidadeMedida,
+            tipo: produto.tipo || "final", // Carrega o tipo do produto
+            preco: (produto.custoProducao || 0).toLocaleString('pt-BR', {
+              minimumFractionDigits: 2,
+              maximumFractionDigits: 2
+            }),
+            quantoRende: produto.quantoRende ? String(produto.quantoRende) : "",
+            custoTotalProducao: produto.custoProducao || 0,
+            custoUnitario: produto.custoProducao || 0,
+            precoSugerido: produto.precoVenda || 0,
+            custoIndireto: formatForDisplay(produto.custoIndireto ?? margemData?.custoIndireto ?? defaultCustoIndireto),
+          });
+          setCustoUnitarioInput((produto.custoProducao || 0).toLocaleString('pt-BR', {
             minimumFractionDigits: 2,
             maximumFractionDigits: 2
-          }),
-          quantoRende: produto.quantoRende ? String(produto.quantoRende) : "",
-          custoTotalProducao: produto.custoProducao || 0,
-          custoUnitario: produto.custoProducao || 0,
-          precoSugerido: produto.precoVenda || 0,
-          custoIndireto: formatForDisplay(produto.custoIndireto ?? margemData?.custoIndireto ?? defaultCustoIndireto),
-        });
-        setCustoUnitarioInput((produto.custoProducao || 0).toLocaleString('pt-BR', {
-          minimumFractionDigits: 2,
-          maximumFractionDigits: 2
-        }));
-        // Carregar componentes (nova estrutura) ou ficha técnica (estrutura legada)
-        if (produto.componentes) {
-          setComponentesDoProduto(produto.componentes);
-        } else if (produto.fichaTecnica) {
-          setInsumosVinculados(produto.fichaTecnica);
-        }
-        
-        // Carregar e normalizar canais de venda
-        if (produto.canaisVenda) {
-          const canaisNormalizados = produto.canaisVenda.map(canal => {
-            // Se o canal já tem tipo e plataformaNome, retornar como está
-            if (canal.tipo && canal.plataformaNome) {
-              return canal;
-            }
-            
-            // Normalizar canal antigo
-            const plataforma = savedPlataformas.find((p: Plataforma) => p.id === canal.plataformaId);
-            return {
-              ...canal,
-              tipo: canal.plataformaId === "balcao" ? "balcao" as const : "plataforma" as const,
-              plataformaNome: canal.plataformaId === "balcao" ? "Balcão" : (plataforma?.nome || canal.plataformaId),
-            };
-          });
-          setCanaisVenda(canaisNormalizados);
+          }));
+          // Carregar componentes (nova estrutura) ou ficha técnica (estrutura legada)
+          if (produto.componentes) {
+            setComponentesDoProduto(produto.componentes);
+          } else if (produto.fichaTecnica) {
+            setInsumosVinculados(produto.fichaTecnica);
+          }
+          
+          // Carregar e normalizar canais de venda
+          if (produto.canaisVenda) {
+            const canaisNormalizados = produto.canaisVenda.map(canal => {
+              // Se o canal já tem tipo e plataformaNome, retornar como está
+              if (canal.tipo && canal.plataformaNome) {
+                return canal;
+              }
+              
+              // Normalizar canal antigo
+              const plataforma = savedPlataformas.find((p: Plataforma) => p.id === canal.plataformaId);
+              return {
+                ...canal,
+                tipo: canal.plataformaId === "balcao" ? "balcao" as const : "plataforma" as const,
+                plataformaNome: canal.plataformaId === "balcao" ? "Balcão" : (plataforma?.nome || canal.plataformaId),
+              };
+            });
+            setCanaisVenda(canaisNormalizados);
+          }
         }
       }
-    }
-  setMargemLoaded(true);
+      setMargemLoaded(true);
+    })();
   }, [isEditing, id, defaultCustoIndireto]);
 
   // Alerta de margem não cadastrada (somente após carregar a margem)
@@ -354,13 +357,13 @@ const CadastroProduto = () => {
     setHasUnsavedChanges(true);
   };
 
-  const validateForm = () => {
+  const validateForm = async () => {
     const newErrors: { [key: string]: string } = {};
     if (!formData.nome.trim()) newErrors.nome = "Nome é obrigatório";
     if (!formData.unidadeMedida) newErrors.unidadeMedida = "Unidade de Medida é obrigatória";
     
     // Validar código duplicado
-    const existingProdutos: Produto[] = JSON.parse(localStorage.getItem("produtos") || "[]");
+    const existingProdutos: Produto[] = JSON.parse(await storage.getItem("produtos") || "[]");
     if (formData.codigo.trim()) {
       const codigoDuplicado = existingProdutos.find(
         (p) => p.codigo?.toLowerCase() === formData.codigo.trim().toLowerCase() && p.id !== id
@@ -491,8 +494,8 @@ const CadastroProduto = () => {
     return totalCusto;
   };
 
-  const saveProduto = () => {
-    if (!validateForm()) {
+  const saveProduto = async () => {
+    if (!await validateForm()) {
       toast({
         title: "Campos obrigatórios",
         description: "Os campos Nome e Unidade de Medida são obrigatórios",
@@ -501,7 +504,7 @@ const CadastroProduto = () => {
       return false;
     }
 
-    const existingProdutos: Produto[] = JSON.parse(localStorage.getItem("produtos") || "[]");
+    const existingProdutos: Produto[] = JSON.parse(await storage.getItem("produtos") || "[]");
 
     // Formatar custoIndireto adicionando % antes de salvar
     const custoIndiretoFormatado = formData.custoIndireto.trim() 
@@ -530,12 +533,12 @@ const CadastroProduto = () => {
       existingProdutos.push(produtoData);
     }
 
-    localStorage.setItem("produtos", JSON.stringify(existingProdutos));
+    await storage.setItem("produtos", JSON.stringify(existingProdutos));
     return true;
   };
 
-  const handleSave = () => {
-    if (saveProduto()) {
+  const handleSave = async () => {
+    if (await saveProduto()) {
       toast({
         title: "Produto salvo!",
         description: isEditing ? "O produto foi atualizado com sucesso" : "O produto foi cadastrado com sucesso",
@@ -545,8 +548,8 @@ const CadastroProduto = () => {
     }
   };
 
-  const handleContinuarCadastrando = () => {
-    if (saveProduto()) {
+  const handleContinuarCadastrando = async () => {
+    if (await saveProduto()) {
       toast({
         title: "Produto salvo!",
         description: "Continue cadastrando mais produtos",

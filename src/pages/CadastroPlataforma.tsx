@@ -7,6 +7,7 @@ import { useToast } from "@/hooks/use-toast";
 import { handlePercentageInput, parsePercentageToDecimal, formatPercentageInput } from "@/lib/utils";
 import { Link } from "react-router-dom";
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from "@/components/ui/breadcrumb";
+import { storage } from "@/lib/storage";
 
 const CadastroPlataforma = () => {
   const navigate = useNavigate();
@@ -22,13 +23,13 @@ const CadastroPlataforma = () => {
     }
   }, [editPlataforma]);
 
-  const savePlataforma = () => {
+  const savePlataforma = async () => {
     const newErrors: { [key: string]: string } = {};
     if (!formData.nome.trim()) newErrors.nome = "Nome é obrigatório";
     if (!formData.taxa) newErrors.taxa = "Taxa é obrigatória";
 
     // Check for duplicates
-    const dadosPlataformas = JSON.parse(localStorage.getItem("plataformas") || "[]");
+    const dadosPlataformas = JSON.parse(await storage.getItem("plataformas") || "[]");
     const nomeLower = formData.nome.trim().toLowerCase();
     
     const duplicateNome = dadosPlataformas.find((p: any) => 
@@ -54,24 +55,24 @@ const CadastroPlataforma = () => {
       if (index !== -1) {
         dadosPlataformas[index] = {
           ...dadosPlataformas[index],
-          nome: formData.nome,
+          nome: formData.nome.trim(),
           taxa: parsePercentageToDecimal(formData.taxa)
         };
       }
     } else {
       dadosPlataformas.push({
         id: Date.now().toString(),
-        nome: formData.nome,
+        nome: formData.nome.trim(),
         taxa: parsePercentageToDecimal(formData.taxa)
       });
     }
 
-    localStorage.setItem("plataformas", JSON.stringify(dadosPlataformas));
+    await storage.setItem("plataformas", JSON.stringify(dadosPlataformas));
     return true;
   };
 
-  const handleSave = () => {
-    if (savePlataforma()) {
+  const handleSave = async () => {
+    if (await savePlataforma()) {
       toast({
         title: "Plataforma salva!",
         description: "A plataforma foi cadastrada com sucesso"

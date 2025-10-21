@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { ArrowLeft, Plus, Ruler, Trash2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from "@/components/ui/breadcrumb";
+import { storage } from "@/lib/storage";
 
 interface Unidade {
   id: string;
@@ -18,10 +19,12 @@ const ListagemUnidades = () => {
   const [unidades, setUnidades] = useState<Unidade[]>([]);
 
   useEffect(() => {
-    const dadosUnidades = localStorage.getItem("unidades");
-    if (dadosUnidades) {
-      setUnidades(JSON.parse(dadosUnidades));
-    }
+    (async () => {
+      const dadosUnidades = await storage.getItem("unidades");
+      if (dadosUnidades) {
+        setUnidades(JSON.parse(dadosUnidades));
+      }
+    })();
   }, []);
 
   const handleBack = () => {
@@ -32,10 +35,10 @@ const ListagemUnidades = () => {
     navigate("/cadastro-unidade");
   };
 
-  const handleDeleteUnidade = (id: string) => {
+  const handleDeleteUnidade = async (id: string) => {
     const updatedUnidades = unidades.filter(u => u.id !== id);
     setUnidades(updatedUnidades);
-    localStorage.setItem("unidades", JSON.stringify(updatedUnidades));
+    await storage.setItem("unidades", JSON.stringify(updatedUnidades));
     
     toast({
       title: "Unidade removida!",
