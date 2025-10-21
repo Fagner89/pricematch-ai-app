@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { ArrowLeft, Ruler } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { storage } from "@/lib/storage";
 
 interface Unidade {
   id: string;
@@ -45,32 +46,35 @@ const CadastroUnidade = () => {
     }
 
     // Check for duplicates
-    const existingUnidades = JSON.parse(localStorage.getItem("unidades") || "[]");
-    const nomeLower = formData.nome.trim().toLowerCase();
-    const siglaUpper = formData.sigla.trim().toUpperCase();
-    
-    const duplicateNome = existingUnidades.find((u: Unidade) => 
-      u.nome.toLowerCase() === nomeLower
-    );
-    
-    const duplicateSigla = existingUnidades.find((u: Unidade) => 
-      u.sigla.toUpperCase() === siglaUpper
-    );
+    return storage.getItem("unidades").then((data) => {
+      const existingUnidades = JSON.parse(data || "[]");
+      const nomeLower = formData.nome.trim().toLowerCase();
+      const siglaUpper = formData.sigla.trim().toUpperCase();
+      
+      const duplicateNome = existingUnidades.find((u: Unidade) => 
+        u.nome.toLowerCase() === nomeLower
+      );
+      
+      const duplicateSigla = existingUnidades.find((u: Unidade) => 
+        u.sigla.toUpperCase() === siglaUpper
+      );
 
-    if (duplicateNome) {
-      newErrors.nome = "Já existe uma unidade com este nome";
-    }
+      if (duplicateNome) {
+        newErrors.nome = "Já existe uma unidade com este nome";
+      }
 
-    if (duplicateSigla) {
-      newErrors.sigla = "Já existe uma unidade com esta sigla";
-    }
+      if (duplicateSigla) {
+        newErrors.sigla = "Já existe uma unidade com esta sigla";
+      }
 
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
+      setErrors(newErrors);
+      return Object.keys(newErrors).length === 0;
+    });
   };
 
-  const saveUnidade = () => {
-    if (!validateForm()) {
+  const saveUnidade = async () => {
+    const isValid = await validateForm();
+    if (!isValid) {
       toast({
         title: "Campos obrigatórios",
         description: "Os campos Nome e Sigla são obrigatórios.",
@@ -79,8 +83,8 @@ const CadastroUnidade = () => {
       return false;
     }
 
-    // Get existing units from localStorage
-    const existingUnidades = JSON.parse(localStorage.getItem("unidades") || "[]");
+    // Get existing units from storage
+    const existingUnidades = JSON.parse(await storage.getItem("unidades") || "[]");
     
     // Create new unit
     const newUnidade: Unidade = {
@@ -90,15 +94,15 @@ const CadastroUnidade = () => {
       fracionado: formData.fracionado
     };
 
-    // Save to localStorage
+    // Save to storage
     existingUnidades.push(newUnidade);
-    localStorage.setItem("unidades", JSON.stringify(existingUnidades));
+    await storage.setItem("unidades", JSON.stringify(existingUnidades));
 
     return true;
   };
 
-  const handleSave = () => {
-    if (saveUnidade()) {
+  const handleSave = async () => {
+    if (await saveUnidade()) {
       toast({
         title: "Unidade salva!",
         description: "A unidade de medida foi cadastrada com sucesso"
@@ -107,8 +111,8 @@ const CadastroUnidade = () => {
     }
   };
 
-  const handleContinuarCadastrando = () => {
-    if (saveUnidade()) {
+  const handleContinuarCadastrando = async () => {
+    if (await saveUnidade()) {
       toast({
         title: "Unidade salva!",
         description: "Continue cadastrando mais unidades"

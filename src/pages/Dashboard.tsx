@@ -4,6 +4,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { User, Plus, Package, ShoppingCart, TrendingUp, TrendingDown, Menu, Calculator } from "lucide-react";
 import { formatCurrency } from "@/lib/utils";
+import { storage, vendasDiarias } from "@/lib/storage";
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -15,33 +16,31 @@ const Dashboard = () => {
   }>({ maiores: [], menores: [] });
 
   useEffect(() => {
-    const dadosLoja = localStorage.getItem("dadosLoja");
-    if (dadosLoja) {
-      const loja = JSON.parse(dadosLoja);
-      if (loja.nomeContato) {
-        const primeiroNome = loja.nomeContato.split(' ')[0];
-        setNomeEmpresa(primeiroNome);
+    const carregarDados = async () => {
+      const dadosLoja = await storage.getItem("dadosLoja");
+      if (dadosLoja) {
+        const loja = JSON.parse(dadosLoja);
+        if (loja.nomeContato) {
+          const primeiroNome = loja.nomeContato.split(' ')[0];
+          setNomeEmpresa(primeiroNome);
+        }
       }
-    }
 
-    // Carregar vendas de hoje
-    const hoje = new Date().toDateString();
-    const vendasData = JSON.parse(localStorage.getItem("vendasHoje") || "{}");
-    if (vendasData.data === hoje) {
-      setVendasHoje({
-        total: vendasData.total || 0,
-        quantidade: vendasData.quantidade || 0
-      });
-    }
+      // Carregar vendas de hoje usando novo sistema
+      const vendas = await vendasDiarias.obterVendasHoje();
+      setVendasHoje(vendas);
 
-    // Calcular rentabilidade dos produtos
-    calcularRentabilidade();
+      // Calcular rentabilidade dos produtos
+      await calcularRentabilidade();
+    };
+
+    carregarDados();
   }, []);
 
-  const calcularRentabilidade = () => {
-    const pedidos = JSON.parse(localStorage.getItem("pedidos") || "[]");
-    const produtos = JSON.parse(localStorage.getItem("produtos") || "[]");
-    const insumos = JSON.parse(localStorage.getItem("insumos") || "[]");
+  const calcularRentabilidade = async () => {
+    const pedidos = JSON.parse(await storage.getItem("pedidos") || "[]");
+    const produtos = JSON.parse(await storage.getItem("produtos") || "[]");
+    const insumos = JSON.parse(await storage.getItem("insumos") || "[]");
     const hoje = new Date().toDateString();
 
     // Filtrar pedidos de hoje
@@ -103,8 +102,8 @@ const Dashboard = () => {
     });
   };
 
-  const handleUserClick = () => {
-    const dadosLoja = localStorage.getItem("dadosLoja");
+  const handleUserClick = async () => {
+    const dadosLoja = await storage.getItem("dadosLoja");
     if (dadosLoja) {
       // Se já tem loja cadastrada, vai para listagem
       navigate("/listagem-lojas");
@@ -117,22 +116,23 @@ const Dashboard = () => {
   // Get today's date in Brazilian format
   const today = new Date().toLocaleDateString("pt-BR");
 
-  // Mock data for counts - in real app these would come from localStorage/API
-  const getCounts = () => {
-    const plataformas = JSON.parse(localStorage.getItem("plataformas") || "[]");
-    const unidades = JSON.parse(localStorage.getItem("unidades") || "[]");
-    const produtos = JSON.parse(localStorage.getItem("produtos") || "[]");
-    const insumos = JSON.parse(localStorage.getItem("insumos") || "[]");
-    
-    return {
-      produtos: produtos.length,
-      insumos: insumos.length,
-      entradas: 0, // Not implemented yet
-      vendas: 0 // Not implemented yet
-    };
-  };
+  const [counts, setCounts] = useState({ produtos: 0, insumos: 0, entradas: 0, vendas: 0 });
 
-  const counts = getCounts();
+  useEffect(() => {
+    const getCounts = async () => {
+      const produtos = JSON.parse(await storage.getItem("produtos") || "[]");
+      const insumos = JSON.parse(await storage.getItem("insumos") || "[]");
+      
+      setCounts({
+        produtos: produtos.length,
+        insumos: insumos.length,
+        entradas: 0, // Not implemented yet
+        vendas: 0 // Not implemented yet
+      });
+    };
+
+    getCounts();
+  }, []);
 
   const actionButtons = [
     {

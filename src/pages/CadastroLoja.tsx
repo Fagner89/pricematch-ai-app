@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, MapPin } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { storage } from "@/lib/storage";
 
 interface AddressData {
   logradouro: string;
@@ -38,27 +39,31 @@ const CadastroLoja = () => {
 
   // Carrega dados salvos ao abrir a tela
   useEffect(() => {
-    const saved = localStorage.getItem("dadosLoja");
-    if (saved) {
-      try {
-        const parsed = JSON.parse(saved);
-        setFormData((prev) => ({ ...prev, ...parsed }));
-      } catch {}
-    }
+    const carregarDados = async () => {
+      const saved = await storage.getItem("dadosLoja");
+      if (saved) {
+        try {
+          const parsed = JSON.parse(saved);
+          setFormData((prev) => ({ ...prev, ...parsed }));
+        } catch {}
+      }
 
-    // Se vier algo via navigate state (ex.: clique em editar), mescla os campos básicos
-    const stateLoja: any = (location as any).state?.loja;
-    if (stateLoja) {
-      setFormData((prev) => ({
-        ...prev,
-        nome: stateLoja.nome || prev.nome,
-        cep: stateLoja.cep || prev.cep,
-        endereco: stateLoja.endereco || prev.endereco,
-        bairro: stateLoja.bairro || prev.bairro,
-        cidade: stateLoja.cidade || prev.cidade,
-        estado: stateLoja.uf || prev.estado,
-      }));
-    }
+      // Se vier algo via navigate state (ex.: clique em editar), mescla os campos básicos
+      const stateLoja: any = (location as any).state?.loja;
+      if (stateLoja) {
+        setFormData((prev) => ({
+          ...prev,
+          nome: stateLoja.nome || prev.nome,
+          cep: stateLoja.cep || prev.cep,
+          endereco: stateLoja.endereco || prev.endereco,
+          bairro: stateLoja.bairro || prev.bairro,
+          cidade: stateLoja.cidade || prev.cidade,
+          estado: stateLoja.uf || prev.estado,
+        }));
+      }
+    };
+
+    carregarDados();
   }, [location]);
 
   const handleInputChange = (field: string, value: string) => {
@@ -144,7 +149,7 @@ const CadastroLoja = () => {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!validateForm()) {
       toast({
         title: "Campos obrigatórios",
@@ -154,8 +159,8 @@ const CadastroLoja = () => {
       return;
     }
 
-    // Simulate saving to storage/API
-    localStorage.setItem("dadosLoja", JSON.stringify(formData));
+    // Salvar com storage persistente
+    await storage.setItem("dadosLoja", JSON.stringify(formData));
     
     toast({
       title: "Loja cadastrada!",

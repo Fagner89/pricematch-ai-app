@@ -7,6 +7,7 @@ import { ArrowLeft, Save, Edit } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { handlePercentageInput, parsePercentageToDecimal } from "@/lib/utils";
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from "@/components/ui/breadcrumb";
+import { storage } from "@/lib/storage";
 
 const CadastroMargem = () => {
   const navigate = useNavigate();
@@ -28,25 +29,29 @@ const CadastroMargem = () => {
 
 // Check if margin already exists
     useEffect(() => {
-      const storedMargem = localStorage.getItem("margem");
-      if (storedMargem) {
-        try {
-          const parsed = JSON.parse(storedMargem);
-          // Load values without % symbol for editing
-          setMargem(formatForDisplay(parsed.margem || ""));
-          setCustoIndireto(formatForDisplay(parsed.custoIndireto || ""));
-          setHasExistingMargem(true);
-        } catch (error) {
-          console.error("Erro ao carregar margem:", error);
+      const carregarMargem = async () => {
+        const storedMargem = await storage.getItem("margem");
+        if (storedMargem) {
+          try {
+            const parsed = JSON.parse(storedMargem);
+            // Load values without % symbol for editing
+            setMargem(formatForDisplay(parsed.margem || ""));
+            setCustoIndireto(formatForDisplay(parsed.custoIndireto || ""));
+            setHasExistingMargem(true);
+          } catch (error) {
+            console.error("Erro ao carregar margem:", error);
+          }
         }
-      }
 
-    // Modo edição via query param
-    const params = new URLSearchParams(location.search);
-    const modo = params.get("modo");
-    if (modo === "editar") {
-      setIsEditing(true);
-    }
+      // Modo edição via query param
+      const params = new URLSearchParams(location.search);
+      const modo = params.get("modo");
+      if (modo === "editar") {
+        setIsEditing(true);
+      }
+    };
+
+    carregarMargem();
   }, [location.search]);
 
   const validateForm = () => {
@@ -65,7 +70,7 @@ const CadastroMargem = () => {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!validateForm()) {
       toast({
         title: "Campos obrigatórios",
@@ -90,7 +95,7 @@ const CadastroMargem = () => {
       updatedAt: new Date().toISOString()
     };
 
-    localStorage.setItem("margem", JSON.stringify(margemData));
+    await storage.setItem("margem", JSON.stringify(margemData));
     toast({
       title: hasExistingMargem ? "Margem atualizada!" : "Margem cadastrada!",
       description: hasExistingMargem ? "A margem foi atualizada com sucesso" : "A margem foi cadastrada com sucesso"

@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { parseBRLToCents, formatCentsToBRL, decimalToCents } from "@/lib/monetary";
+import { storage } from "@/lib/storage";
 
 interface Insumo {
   id: string;
@@ -39,49 +40,57 @@ const CadastroInsumo = () => {
 
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
 
-  // Load unidades from localStorage
+  // Load unidades from storage
   useEffect(() => {
-    const storedUnidades = JSON.parse(localStorage.getItem("unidades") || "[]");
-    const unidadeOptions = storedUnidades.map((unidade: any) => unidade.sigla);
+    const carregarUnidades = async () => {
+      const storedUnidades = JSON.parse(await storage.getItem("unidades") || "[]");
+      const unidadeOptions = storedUnidades.map((unidade: any) => unidade.sigla);
 
-    setUnidadesMedida(unidadeOptions);
+      setUnidadesMedida(unidadeOptions);
+    };
+
+    carregarUnidades();
   }, []);
 
   // Load existing data for editing
   useEffect(() => {
-    if (editId) {
-      const existingInsumos = JSON.parse(localStorage.getItem("insumos") || "[]");
-      const insumoToEdit = existingInsumos.find((insumo: any) => insumo.id === editId);
-      
-      if (insumoToEdit) {
-        // Handle both old format (preco as decimal) and new format (preco_cents)
-        const cents = insumoToEdit.preco_cents !== undefined
-          ? Number(insumoToEdit.preco_cents)
-          : decimalToCents(insumoToEdit.preco || 0);
+    const carregarInsumo = async () => {
+      if (editId) {
+        const existingInsumos = JSON.parse(await storage.getItem("insumos") || "[]");
+        const insumoToEdit = existingInsumos.find((insumo: any) => insumo.id === editId);
         
-        setFormData({
-          nome: insumoToEdit.nome,
-          codigo: insumoToEdit.codigo || "",
-          unidade: insumoToEdit.unidade,
-          preco: formatCentsToBRL(cents),
-          quantidadeEmbalagem: insumoToEdit.quantidadeEmbalagem ? String(insumoToEdit.quantidadeEmbalagem) : "",
-          precoUnitarioDisplay: "" // Calculated below
-        });
-        setInternalCents(cents);
-        setInternalQtdEmbalagem(insumoToEdit.quantidadeEmbalagem || undefined);
+        if (insumoToEdit) {
+          // Handle both old format (preco as decimal) and new format (preco_cents)
+          const cents = insumoToEdit.preco_cents !== undefined
+            ? Number(insumoToEdit.preco_cents)
+            : decimalToCents(insumoToEdit.preco || 0);
+          
+          setFormData({
+            nome: insumoToEdit.nome,
+            codigo: insumoToEdit.codigo || "",
+            unidade: insumoToEdit.unidade,
+            preco: formatCentsToBRL(cents),
+            quantidadeEmbalagem: insumoToEdit.quantidadeEmbalagem ? String(insumoToEdit.quantidadeEmbalagem) : "",
+            precoUnitarioDisplay: "" // Calculated below
+          });
+          setInternalCents(cents);
+          setInternalQtdEmbalagem(insumoToEdit.quantidadeEmbalagem || undefined);
 
-        if (insumoToEdit.preco_unitario_cents !== undefined) {
-          // Se já tem preço unitário salvo, usar ele
-          setInternalPrecoUnitarioCents(insumoToEdit.preco_unitario_cents);
-          setFormData(prev => ({ ...prev, precoUnitarioDisplay: formatCentsToBRL(insumoToEdit.preco_unitario_cents) }));
-        } else if (cents && insumoToEdit.quantidadeEmbalagem) {
-          // Senão, calcular baseado no preço e quantidade da embalagem
-          const unitPriceCents = Math.round(cents / insumoToEdit.quantidadeEmbalagem);
-          setInternalPrecoUnitarioCents(unitPriceCents);
-          setFormData(prev => ({ ...prev, precoUnitarioDisplay: formatCentsToBRL(unitPriceCents) }));
+          if (insumoToEdit.preco_unitario_cents !== undefined) {
+            // Se já tem preço unitário salvo, usar ele
+            setInternalPrecoUnitarioCents(insumoToEdit.preco_unitario_cents);
+            setFormData(prev => ({ ...prev, precoUnitarioDisplay: formatCentsToBRL(insumoToEdit.preco_unitario_cents) }));
+          } else if (cents && insumoToEdit.quantidadeEmbalagem) {
+            // Senão, calcular baseado no preço e quantidade da embalagem
+            const unitPriceCents = Math.round(cents / insumoToEdit.quantidadeEmbalagem);
+            setInternalPrecoUnitarioCents(unitPriceCents);
+            setFormData(prev => ({ ...prev, precoUnitarioDisplay: formatCentsToBRL(unitPriceCents) }));
+          }
         }
       }
-    }
+    };
+
+    carregarInsumo();
   }, [editId]);
 
   const handleInputChange = (field: string, value: string) => {
@@ -129,7 +138,7 @@ const CadastroInsumo = () => {
     }
   };
 
-  const validateForm = () => {
+  const validateForm = async () => {
     const newErrors: { [key: string]: string } = {};
 
     if (unidadesMedida.length === 0) {
@@ -154,7 +163,7 @@ const CadastroInsumo = () => {
     }
 
     // Check for duplicates (skip if editing)
-    const existingInsumos = JSON.parse(localStorage.getItem("insumos") || "[]");
+    const existingInsumos = JSON.parse(await storage.getItem("insumos") || "[]");
     const nomeLower = formData.nome.trim().toLowerCase();
     const codigoTrimmed = formData.codigo.trim();
     
@@ -180,8 +189,8 @@ const CadastroInsumo = () => {
     return Object.keys(newErrors).length === 0;
   };
 
-  const saveInsumo = () => {
-    if (!validateForm()) {
+  const saveInsumo = async () => {
+    if (!await validateForm()) {
       toast({
         title: "Campos obrigatórios",
         description: "Os campos Nome, Unidade de Medida e Preço são obrigatórios",
@@ -190,7 +199,7 @@ const CadastroInsumo = () => {
       return false;
     }
 
-    const existingInsumos = JSON.parse(localStorage.getItem("insumos") || "[]");
+    const existingInsumos = JSON.parse(await storage.getItem("insumos") || "[]");
     
     if (editId) {
       // Update existing insumo
@@ -207,7 +216,7 @@ const CadastroInsumo = () => {
             }
           : insumo
       );
-      localStorage.setItem("insumos", JSON.stringify(updatedInsumos));
+      await storage.setItem("insumos", JSON.stringify(updatedInsumos));
     } else {
       // Create new insumo
       const newInsumo = {
@@ -220,14 +229,14 @@ const CadastroInsumo = () => {
         preco_unitario_cents: internalPrecoUnitarioCents // Salva o preço unitário calculado
       };
       existingInsumos.push(newInsumo);
-      localStorage.setItem("insumos", JSON.stringify(existingInsumos));
+      await storage.setItem("insumos", JSON.stringify(existingInsumos));
     }
 
     return true;
   };
 
-  const handleSave = () => {
-    if (saveInsumo()) {
+  const handleSave = async () => {
+    if (await saveInsumo()) {
       toast({
         title: editId ? "Insumo atualizado!" : "Insumo salvo!",
         description: editId ? "O insumo foi atualizado com sucesso" : "O insumo foi cadastrado com sucesso"
@@ -236,14 +245,14 @@ const CadastroInsumo = () => {
     }
   };
 
-  const handleContinuarCadastrando = () => {
+  const handleContinuarCadastrando = async () => {
     if (editId) {
       // If editing, just save and go back to list
       handleSave();
       return;
     }
     
-    if (saveInsumo()) {
+    if (await saveInsumo()) {
       toast({
         title: "Insumo salvo!",
         description: "Continue cadastrando mais insumos"
