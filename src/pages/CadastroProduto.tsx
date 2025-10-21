@@ -213,8 +213,10 @@ const CadastroProduto = () => {
           // Carregar componentes (nova estrutura) ou ficha técnica (estrutura legada)
           if (produto.componentes) {
             setComponentesDoProduto(produto.componentes);
+            setActiveTab("ficha"); // Abrir na aba Ficha Técnica se tiver componentes
           } else if (produto.fichaTecnica) {
             setInsumosVinculados(produto.fichaTecnica);
+            setActiveTab("ficha"); // Abrir na aba Ficha Técnica se tiver ficha técnica
           }
           
           // Carregar e normalizar canais de venda
@@ -670,10 +672,10 @@ const CadastroProduto = () => {
       </header>
 
       {/* Main Content */}
-      <main className="pt-16 pb-20 safe-area-bottom">
+      <main className="pt-16 pb-20 safe-area-bottom overflow-x-hidden">
         <div className="max-w-lg mx-auto p-4">
           <Card className="shadow-lg border-0" style={{ borderRadius: "3px" }}>
-            <CardContent className="p-6">
+            <CardContent className="p-6 overflow-x-auto">
               {/* Campos básicos */}
               <div className="space-y-4 mb-6">
                 <div>
@@ -810,9 +812,9 @@ const CadastroProduto = () => {
                   </div>
 
                   {/* Detalhamento do Cálculo */}
-                  <div className="p-4 bg-blue-50 border border-blue-200 rounded-sm space-y-2">
+                  <div className="p-4 bg-blue-50 border border-blue-200 rounded-sm space-y-2 overflow-x-auto">
                     <div className="text-sm font-semibold text-blue-900">Composição do Preço de Venda:</div>
-                    <div className="space-y-1 text-xs text-blue-800">
+                    <div className="space-y-1 text-xs text-blue-800 min-w-[280px]">
                       <div className="flex justify-between">
                         <span>Preço de Custo:</span>
                         <span className="font-medium">{formatCurrency(formData.custoUnitario || 0)}</span>
@@ -959,38 +961,40 @@ const CadastroProduto = () => {
 
                   {/* Listagem de Componentes Vinculados */}
                   {componentesDoProduto.length > 0 && (
-                    <div className="space-y-2">
+                    <div className="space-y-2 overflow-x-auto">
                       <h4 className="font-medium text-foreground">Componentes Vinculados:</h4>
-                      {componentesDoProduto.map((item, index) => (
-                        <div key={index} className="flex items-center justify-between p-3 bg-muted rounded-sm">
-                          <div>
-                            <div className="flex items-center gap-2">
-                              <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
-                                item.itemTipo === "insumo" 
-                                  ? "bg-blue-100 text-blue-800" 
-                                  : "bg-green-100 text-green-800"
-                              }`}>
-                                {item.itemTipo === "insumo" 
-                                  ? "Insumo" 
-                                  : `Produto (${item.itemTipo === "produto_intermediario" ? "Interm." : "Final"})`
-                                }
-                              </span>
-                              <span className="font-medium text-foreground">{item.itemNome}</span>
+                      <div className="min-w-[300px]">
+                        {componentesDoProduto.map((item, index) => (
+                          <div key={index} className="flex items-center justify-between p-3 bg-muted rounded-sm mb-2">
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center gap-2 flex-wrap">
+                                <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
+                                  item.itemTipo === "insumo" 
+                                    ? "bg-blue-100 text-blue-800" 
+                                    : "bg-green-100 text-green-800"
+                                }`}>
+                                  {item.itemTipo === "insumo" 
+                                    ? "Insumo" 
+                                    : `Produto (${item.itemTipo === "produto_intermediario" ? "Interm." : "Final"})`
+                                  }
+                                </span>
+                                <span className="font-medium text-foreground truncate">{item.itemNome}</span>
+                              </div>
+                              <div className="text-sm text-muted-foreground mt-1">
+                                {item.quantidade.toLocaleString('pt-BR', { minimumFractionDigits: 3, maximumFractionDigits: 3 })} {item.unidade} - {formatCurrency(item.quantidade * item.custoUnitarioCalculado)}
+                              </div>
                             </div>
-                            <div className="text-sm text-muted-foreground mt-1">
-                              {item.quantidade.toLocaleString('pt-BR', { minimumFractionDigits: 3, maximumFractionDigits: 3 })} {item.unidade} - {formatCurrency(item.quantidade * item.custoUnitarioCalculado)}
-                            </div>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => removeComponente(index)}
+                              className="hover:bg-destructive/10 hover:text-destructive ml-2 flex-shrink-0"
+                            >
+                              <X className="h-4 w-4" />
+                            </Button>
                           </div>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => removeComponente(index)}
-                            className="hover:bg-destructive/10 hover:text-destructive"
-                          >
-                            <X className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      ))}
+                        ))}
+                      </div>
                       
                       <div className="mt-3 p-3 bg-primary/5 rounded-sm border-l-4 border-primary">
                         <div className="text-sm font-medium text-primary">
@@ -1047,9 +1051,9 @@ const CadastroProduto = () => {
                       </div>
 
                       {/* Detalhamento do Cálculo na Ficha Técnica */}
-                      <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-sm space-y-2">
+                      <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-sm space-y-2 overflow-x-auto">
                         <div className="text-sm font-semibold text-blue-900">Composição do Preço de Venda:</div>
-                        <div className="space-y-1 text-xs text-blue-800">
+                        <div className="space-y-1 text-xs text-blue-800 min-w-[280px]">
                           <div className="flex justify-between">
                             <span>Custo Unitário:</span>
                             <span className="font-medium">{formatCurrency(formData.custoUnitario || 0)}</span>
