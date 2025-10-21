@@ -2,10 +2,10 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ArrowLeft, Calculator } from "lucide-react";
-import { formatCurrency, parseCurrencyToDecimal, handleCurrencyInput, parsePercentageToDecimal, handlePercentageInput, formatPercentage } from "@/lib/utils";
+import { formatCurrency, parseCurrencyToDecimal, parsePercentageToDecimal, formatPercentage } from "@/lib/utils";
+import { NumericInput } from "@/components/ui/numeric-input";
 
 const CalculadoraPreco = () => {
   const navigate = useNavigate();
@@ -97,13 +97,12 @@ const CalculadoraPreco = () => {
                 <Label htmlFor="precoCusto" className="text-sm font-medium">
                   Preço de Custo (R$)
                 </Label>
-                <Input
+                <NumericInput
                   id="precoCusto"
-                  type="text"
-                  inputMode="decimal"
+                  decimalPlaces={2}
                   placeholder="0,00"
                   value={precoCusto}
-                  onChange={(e) => handleCurrencyInput(e.target.value, setPrecoCusto)}
+                  onValueChange={setPrecoCusto}
                   className="text-base h-12"
                 />
               </div>
@@ -113,19 +112,12 @@ const CalculadoraPreco = () => {
                 <Label htmlFor="custoIndireto" className="text-sm font-medium">
                   Custo Indireto (%)
                 </Label>
-                <Input
+                <NumericInput
                   id="custoIndireto"
-                  type="text"
-                  inputMode="decimal"
+                  decimalPlaces={2}
                   placeholder="0,00"
                   value={custoIndireto}
-                  onChange={(e) => {
-                    const value = e.target.value.replace(/[^\d,]/g, "");
-                    const parts = value.split(",");
-                    if (parts.length > 2) return;
-                    if (parts[1] && parts[1].length > 2) return;
-                    setCustoIndireto(value);
-                  }}
+                  onValueChange={setCustoIndireto}
                   className="text-base h-12"
                 />
               </div>
@@ -135,19 +127,12 @@ const CalculadoraPreco = () => {
                 <Label htmlFor="margem" className="text-sm font-medium">
                   Margem de Lucro (%)
                 </Label>
-                <Input
+                <NumericInput
                   id="margem"
-                  type="text"
-                  inputMode="decimal"
+                  decimalPlaces={2}
                   placeholder="0,00"
                   value={margem}
-                  onChange={(e) => {
-                    const value = e.target.value.replace(/[^\d,]/g, "");
-                    const parts = value.split(",");
-                    if (parts.length > 2) return;
-                    if (parts[1] && parts[1].length > 2) return;
-                    setMargem(value);
-                  }}
+                  onValueChange={setMargem}
                   className="text-base h-12"
                 />
               </div>
@@ -157,19 +142,12 @@ const CalculadoraPreco = () => {
                 <Label htmlFor="taxa" className="text-sm font-medium">
                   Taxa da Plataforma (%)
                 </Label>
-                <Input
+                <NumericInput
                   id="taxa"
-                  type="text"
-                  inputMode="decimal"
+                  decimalPlaces={2}
                   placeholder="0,00"
                   value={taxa}
-                  onChange={(e) => {
-                    const value = e.target.value.replace(/[^\d,]/g, "");
-                    const parts = value.split(",");
-                    if (parts.length > 2) return;
-                    if (parts[1] && parts[1].length > 2) return;
-                    setTaxa(value);
-                  }}
+                  onValueChange={setTaxa}
                   className="text-base h-12"
                 />
               </div>

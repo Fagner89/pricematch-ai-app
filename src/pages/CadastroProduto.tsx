@@ -25,6 +25,7 @@ import {
 } from "@/lib/utils";
 import { formatCentsToBRL } from "@/lib/monetary";
 import { storage } from "@/lib/storage";
+import { NumericInput } from "@/components/ui/numeric-input";
 
 interface Insumo {
   id: string;
@@ -767,11 +768,11 @@ const CadastroProduto = () => {
 
                 <div>
                   <label className="text-sm font-medium text-foreground mb-1 block">Custo</label>
-                  <input
-                    type="text"
+                  <NumericInput
+                    decimalPlaces={2}
                     value={formData.preco}
-                    onChange={(e) => handleCurrencyInput(e.target.value, (value) => handleInputChange("preco", value))}
-                    placeholder="R$ 0,00"
+                    onValueChange={(value) => handleInputChange("preco", value)}
+                    placeholder="0,00"
                     className="w-full h-12 px-4 border border-gray-300 rounded text-sm"
                     style={{ borderRadius: "3px", color: "#666666" }}
                   />
@@ -810,22 +811,16 @@ const CadastroProduto = () => {
                   {/* Custo Indireto */}
                   <div className="text-center p-4 border border-border rounded-sm">
                     <div className="text-sm text-muted-foreground">Custo Indireto (%)</div>
-                    <input
-                      type="text"
-                      inputMode="decimal"
+                    <NumericInput
+                      decimalPlaces={2}
                       value={formData.custoIndireto}
                       onChange={(e) => {
-                        const value = e.target.value.replace(/[^\d,]/g, "");
-                        const parts = value.split(",");
-                        if (parts.length > 2) return;
-                        if (parts[1] && parts[1].length > 2) return;
-                        // Não permitir valores iniciando com "," sozinho
-                        const normalized = value.startsWith(",") ? `0${value}` : value;
-                        setFormData((prev) => ({ ...prev, custoIndireto: normalized }));
+                        const value = e.target.value;
+                        setFormData((prev) => ({ ...prev, custoIndireto: value }));
                       }}
+                      onBlur={() => setFormData(prev => ({ ...prev, custoIndireto: formatDecimalMask(prev.custoIndireto) }))}
                       className="mt-2 w-full h-10 px-3 border border-border rounded-sm text-sm text-foreground text-center"
                       placeholder="0,00"
-                      onBlur={() => setFormData(prev => ({ ...prev, custoIndireto: formatDecimalMask(prev.custoIndireto) }))}
                     />
                     <p className="text-xs text-muted-foreground mt-2">
                       Valor decimal aplicado sobre o custo unitário para despesas indiretas (Ex: 0,10 = 10%).
@@ -883,11 +878,10 @@ const CadastroProduto = () => {
                         />
                         <Search className="absolute right-3 top-3 h-6 w-6 text-muted-foreground" />
                       </div>
-                      <input
-                        type="number"
-                        step="0.01"
+                      <NumericInput
+                        decimalPlaces={3}
                         value={quantidadeTemp}
-                        onChange={(e) => setQuantidadeTemp(e.target.value)}
+                        onValueChange={setQuantidadeTemp}
                         placeholder="Quantidade"
                         className="w-24 h-12 px-2 border border-border rounded-sm text-sm text-foreground"
                       />
@@ -1024,10 +1018,10 @@ const CadastroProduto = () => {
                       </div>
 
                       <div className="mt-4">
-                        <input
-                          type="text"
+                        <NumericInput
+                          decimalPlaces={3}
                           value={formData.quantoRende}
-                          onChange={(e) => handleInputChange("quantoRende", e.target.value)}
+                          onValueChange={(value) => handleInputChange("quantoRende", value)}
                           placeholder="Quanto Rende"
                           className="w-full h-12 px-4 border border-border rounded-sm text-sm text-foreground"
                         />
@@ -1040,21 +1034,16 @@ const CadastroProduto = () => {
                       <div className="mt-4">
                         <div className="text-center p-4 border border-border rounded-sm">
                           <div className="text-sm text-muted-foreground">Custo Indireto (%)</div>
-                          <input
-                            type="text"
-                            inputMode="decimal"
+                          <NumericInput
+                            decimalPlaces={2}
                             value={formData.custoIndireto}
                             onChange={(e) => {
-                              const value = e.target.value.replace(/[^\d,]/g, "");
-                              const parts = value.split(",");
-                              if (parts.length > 2) return;
-                              if (parts[1] && parts[1].length > 2) return;
-                              const normalized = value.startsWith(",") ? `0${value}` : value;
-                              setFormData(prev => ({ ...prev, custoIndireto: normalized }));
+                              const value = e.target.value;
+                              setFormData(prev => ({ ...prev, custoIndireto: value }));
                             }}
+                            onBlur={() => setFormData(prev => ({ ...prev, custoIndireto: formatDecimalMask(prev.custoIndireto) }))}
                             className="mt-2 w-full h-10 px-3 border border-border rounded-sm text-sm text-foreground text-center"
                             placeholder="0,00"
-                            onBlur={() => setFormData(prev => ({ ...prev, custoIndireto: formatDecimalMask(prev.custoIndireto) }))}
                           />
                           <p className="text-xs text-muted-foreground mt-2">
                             Valor decimal aplicado sobre o custo unitário para despesas indiretas (Ex: 0,10 = 10%).

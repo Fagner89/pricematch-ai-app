@@ -6,6 +6,7 @@ import { ArrowLeft } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { parseBRLToCents, formatCentsToBRL, decimalToCents } from "@/lib/monetary";
 import { storage } from "@/lib/storage";
+import { NumericInput } from "@/components/ui/numeric-input";
 
 interface Insumo {
   id: string;
@@ -377,8 +378,8 @@ const CadastroInsumo = () => {
 
                 {/* Preço Field */}
                 <div>
-                  <input
-                    type="text"
+                  <NumericInput
+                    decimalPlaces={2}
                     value={formData.preco}
                     onChange={(e) => handlePrecoChange(e.target.value)}
                     placeholder="Preço"
@@ -394,8 +395,8 @@ const CadastroInsumo = () => {
 
                 {/* Quantidade na Embalagem Field */}
                 <div>
-                  <input
-                    type="text"
+                  <NumericInput
+                    decimalPlaces={3}
                     value={formData.quantidadeEmbalagem}
                     onChange={(e) => handleQuantidadeEmbalagemChange(e.target.value)}
                     placeholder="Qtd. na Embalagem"

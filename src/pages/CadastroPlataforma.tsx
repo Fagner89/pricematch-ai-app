@@ -8,6 +8,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Link } from "react-router-dom";
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from "@/components/ui/breadcrumb";
 import { storage } from "@/lib/storage";
+import { NumericInput } from "@/components/ui/numeric-input";
 
 const CadastroPlataforma = () => {
   const navigate = useNavigate();
@@ -183,9 +184,8 @@ const CadastroPlataforma = () => {
                   <label className="text-sm font-medium text-foreground block mb-2">
                     Taxa (%)
                   </label>
-                  <Input
-                    type="text"
-                    inputMode="decimal"
+                  <NumericInput
+                    decimalPlaces={2}
                     value={formData.taxa}
                     onChange={(e) => handleInputChange("taxa", e.target.value)}
                     placeholder="Digite a taxa"

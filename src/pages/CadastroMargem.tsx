@@ -8,6 +8,7 @@ import { useToast } from "@/hooks/use-toast";
 import { handlePercentageInput, parsePercentageToDecimal } from "@/lib/utils";
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from "@/components/ui/breadcrumb";
 import { storage } from "@/lib/storage";
+import { NumericInput } from "@/components/ui/numeric-input";
 
 const CadastroMargem = () => {
   const navigate = useNavigate();
@@ -187,9 +188,8 @@ const CadastroMargem = () => {
                   <label className="text-sm font-medium text-foreground block mb-2">
                     % Margem
                   </label>
-                  <Input
-                    type="text"
-                    inputMode="decimal"
+                  <NumericInput
+                    decimalPlaces={2}
                     value={margem}
                     onChange={(e) => handleInputChange("margem", e.target.value)}
                     placeholder="Digite a margem"
@@ -206,9 +206,8 @@ const CadastroMargem = () => {
                   <label className="text-sm font-medium text-foreground block mb-2">
                     Custo Indireto Padrão (%)
                   </label>
-                  <Input
-                    type="text"
-                    inputMode="decimal"
+                  <NumericInput
+                    decimalPlaces={2}
                     value={custoIndireto}
                     onChange={(e) => handleInputChange("custoIndireto", e.target.value)}
                     placeholder="Digite o custo indireto"

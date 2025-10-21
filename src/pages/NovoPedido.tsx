@@ -14,6 +14,7 @@ import {
   parseCurrencyToDecimal,
   formatCurrency,
 } from "@/lib/utils";
+import { NumericInput } from "@/components/ui/numeric-input";
 
 interface Produto {
   id: string;
@@ -444,15 +445,12 @@ const NovoPedido = () => {
                     <Label htmlFor="quantidade" className="text-foreground font-semibold">
                       Quantidade
                     </Label>
-                    <Input
+                    <NumericInput
                       id="quantidade"
-                      type="text"
+                      decimalPlaces={3}
                       value={quantidade}
-                      onChange={(e) => {
-                        const value = e.target.value.replace(/[^\d,]/g, "");
-                        setQuantidade(value);
-                      }}
-                      placeholder="0,00"
+                      onChange={(e) => setQuantidade(e.target.value)}
+                      placeholder="0,000"
                       className="mt-2 bg-background border-input"
                     />
                   </div>
@@ -557,10 +555,11 @@ const NovoPedido = () => {
                   {responsavelFrete === "loja" && (
                     <div>
                       <Label htmlFor="valorFrete">Valor do Frete</Label>
-                      <Input
+                      <NumericInput
                         id="valorFrete"
+                        decimalPlaces={2}
                         value={valorFrete}
-                        onChange={(e) => handleCurrencyInput(e.target.value, setValorFrete)}
+                        onValueChange={setValorFrete}
                         placeholder="0,00"
                         className="mt-2"
                       />
