@@ -6,6 +6,7 @@ import { ArrowLeft, Plus, Beaker, Trash2, Edit, Search } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { formatCentsToBRL, decimalToCents } from "@/lib/monetary";
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from "@/components/ui/breadcrumb";
+import { removeAccents } from "@/lib/utils";
 
 interface Insumo {
   id: string;
@@ -56,8 +57,8 @@ const ListagemInsumos = () => {
     const term = searchTerm.trim().toLowerCase();
     if (!term) return true;
     return (
-      i.nome.toLowerCase().includes(term) ||
-      (i.codigo ? i.codigo.toLowerCase().includes(term) : false)
+      removeAccents(i.nome.toLowerCase()).includes(removeAccents(term)) ||
+      (i.codigo ? removeAccents(i.codigo.toLowerCase()).includes(removeAccents(term)) : false)
     );
   });
 

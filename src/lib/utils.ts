@@ -5,6 +5,11 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
+// Remove acentos de uma string para comparação
+export function removeAccents(str: string): string {
+  return str.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+}
+
 // Utility functions for Brazilian currency formatting
 export function formatCurrency(value: number | string, decimals: number = 2): string {
   const numValue = typeof value === 'string' ? parseFloat(value) || 0 : value;

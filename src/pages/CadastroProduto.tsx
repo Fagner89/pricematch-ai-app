@@ -22,6 +22,7 @@ import {
   parsePercentageToDecimal,
   handlePercentageInput,
   formatPercentage,
+  removeAccents,
 } from "@/lib/utils";
 import { formatCentsToBRL } from "@/lib/monetary";
 import { storage } from "@/lib/storage";
@@ -409,7 +410,7 @@ const CadastroProduto = () => {
   };
 
   const filteredInsumos = insumos.filter((insumo) =>
-    insumo.nome.toLowerCase().includes(searchTerm.toLowerCase())
+    removeAccents(insumo.nome.toLowerCase()).includes(removeAccents(searchTerm.toLowerCase()))
   );
 
 
@@ -892,7 +893,7 @@ const CadastroProduto = () => {
                   {searchTerm && (insumos.length > 0 || produtosDisponiveis.length > 0) && (
                     <div className="max-h-40 overflow-y-auto border border-border rounded-sm">
                       {/* Insumos */}
-                      {insumos.filter(i => i.nome.toLowerCase().includes(searchTerm.toLowerCase())).map((insumo) => (
+                      {insumos.filter(i => removeAccents(i.nome.toLowerCase()).includes(removeAccents(searchTerm.toLowerCase()))).map((insumo) => (
                         <div
                           key={`insumo-${insumo.id}`}
                           className="p-3 border-b border-border last:border-b-0 flex items-center justify-between"
@@ -930,7 +931,7 @@ const CadastroProduto = () => {
                       ))}
 
                       {/* Produtos (Intermediários/Finais) */}
-                      {produtosDisponiveis.filter(p => p.nome.toLowerCase().includes(searchTerm.toLowerCase())).map((produto) => (
+                      {produtosDisponiveis.filter(p => removeAccents(p.nome.toLowerCase()).includes(removeAccents(searchTerm.toLowerCase()))).map((produto) => (
                         <div
                           key={`produto-${produto.id}`}
                           className="p-3 border-b border-border last:border-b-0 flex items-center justify-between"
@@ -966,8 +967,8 @@ const CadastroProduto = () => {
                     </div>
                   )}
 
-                  {searchTerm && insumos.filter(i => i.nome.toLowerCase().includes(searchTerm.toLowerCase())).length === 0 &&
-                   produtosDisponiveis.filter(p => p.nome.toLowerCase().includes(searchTerm.toLowerCase())).length === 0 && (
+                  {searchTerm && insumos.filter(i => removeAccents(i.nome.toLowerCase()).includes(removeAccents(searchTerm.toLowerCase()))).length === 0 &&
+                   produtosDisponiveis.filter(p => removeAccents(p.nome.toLowerCase()).includes(removeAccents(searchTerm.toLowerCase()))).length === 0 && (
                     <div className="text-center p-4 text-muted-foreground">
                       <p>Nenhum insumo ou produto encontrado</p>
                       <p className="text-xs mt-1">Verifique os cadastros de insumos e produtos.</p>

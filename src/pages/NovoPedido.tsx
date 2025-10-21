@@ -13,6 +13,7 @@ import {
   handleCurrencyInput,
   parseCurrencyToDecimal,
   formatCurrency,
+  removeAccents,
 } from "@/lib/utils";
 import { NumericInput } from "@/components/ui/numeric-input";
 
@@ -102,8 +103,8 @@ const NovoPedido = () => {
   const produtosFiltrados = buscaProduto
     ? produtos.filter(
         (p) =>
-          p.nome.toLowerCase().includes(buscaProduto.toLowerCase()) ||
-          p.codigo?.toLowerCase().includes(buscaProduto.toLowerCase())
+          removeAccents(p.nome.toLowerCase()).includes(removeAccents(buscaProduto.toLowerCase())) ||
+          (p.codigo ? removeAccents(p.codigo.toLowerCase()).includes(removeAccents(buscaProduto.toLowerCase())) : false)
       )
     : [];
 

@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { ArrowLeft, Plus, ShoppingCart, Trash2, Pencil, Search } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from "@/components/ui/breadcrumb";
-import { parsePercentageToDecimal, parseCurrencyToDecimal, formatCurrency } from "@/lib/utils";
+import { parsePercentageToDecimal, parseCurrencyToDecimal, formatCurrency, removeAccents } from "@/lib/utils";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 
 interface Produto {
@@ -65,8 +65,8 @@ const ListagemProdutos = () => {
     const term = searchTerm.trim().toLowerCase();
     if (!term) return true;
     return (
-      p.nome.toLowerCase().includes(term) ||
-      (p.codigo ? p.codigo.toLowerCase().includes(term) : false)
+      removeAccents(p.nome.toLowerCase()).includes(removeAccents(term)) ||
+      (p.codigo ? removeAccents(p.codigo.toLowerCase()).includes(removeAccents(term)) : false)
     );
   });
 
