@@ -88,6 +88,17 @@ const CadastroPlataforma = () => {
     }
   };
 
+  const handleContinuarCadastrando = async () => {
+    if (await savePlataforma()) {
+      toast({
+        title: "Plataforma salva!",
+        description: "Você pode continuar cadastrando"
+      });
+      setFormData({ nome: "", taxa: "" });
+      setErrors({});
+    }
+  };
+
   const handleBack = () => {
     navigate("/listagem-plataformas");
   };
@@ -125,7 +136,17 @@ const CadastroPlataforma = () => {
             Plataformas
           </h1>
           
-          <div className="w-10 sm:w-11"></div>
+          {!editPlataforma && (
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={handleContinuarCadastrando}
+              className="hover:bg-muted min-w-[44px] min-h-[44px]"
+            >
+              <Save className="h-6 w-6 text-foreground" />
+            </Button>
+          )}
+          {editPlataforma && <div className="w-10 sm:w-11"></div>}
         </div>
       </header>
 
@@ -196,18 +217,6 @@ const CadastroPlataforma = () => {
                   )}
                 </div>
               </div>
-
-              {/* Save Button */}
-              <div className="mt-16">
-                <Button
-                  onClick={handleSave}
-                  className="w-full h-12 font-bold"
-                  style={{ backgroundColor: "#180F33", borderRadius: "3px" }}
-                >
-                  <Save className="w-4 h-4 mr-2" />
-                  {editPlataforma ? "Salvar Alterações" : "Salvar"}
-                </Button>
-              </div>
             </CardContent>
           </Card>
         </div>
@@ -227,7 +236,7 @@ const CadastroPlataforma = () => {
             onClick={handleSave}
             className="flex-1 h-11 sm:h-12 text-sm font-semibold"
           >
-            {editPlataforma ? "Atualizar" : "Salvar"}
+            Salvar
           </Button>
         </div>
       </footer>
