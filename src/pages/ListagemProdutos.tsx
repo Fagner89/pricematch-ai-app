@@ -128,22 +128,6 @@ const ListagemProdutos = () => {
     // 4. Rentabilidade = (Lucro ÷ Preço Sugerido) × 100
     const percent = (lucro / precoSugerido) * 100;
     const formatted = `${percent.toFixed(2).replace('.', ',')}%`;
-    
-    // Log apenas para Massa Bolo
-    if (produto.nome === "Massa Bolo") {
-      console.log("🔍 ANÁLISE RENTABILIDADE - Massa Bolo:", {
-        nome: produto.nome,
-        custoProducao: custo,
-        custoIndiretoDecimal,
-        margemDecimal,
-        "1. Custo Total": custoTotal,
-        "2. Preço Sugerido": precoSugerido,
-        "3. Lucro": lucro,
-        "4. Rentabilidade %": percent,
-        formatted
-      });
-    }
-    
     return { percent, formatted };
   };
 
