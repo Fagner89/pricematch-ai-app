@@ -666,18 +666,21 @@ const CadastroProduto = () => {
     return canal?.valorFinal || "";
   };
 
-  const calcularRentabilidade = (valorFinal: number) => {
-    // Converter custo indireto de string "30,00" (percentual) para decimal 0.30
+  const calcularRentabilidade = (valorFinal: number, taxa: number = 0) => {
     const custoIndiretoDecimal = parseFloat(formData.custoIndireto.replace(',', '.') || "0") / 100;
     const custoComIndireto = (formData.custoUnitario || 0) * (1 + custoIndiretoDecimal);
-    
+  
     if (valorFinal <= 0) return 0;
-    
-    const lucro = valorFinal - custoComIndireto;
+  
+    // Valor realmente recebido após desconto da taxa
+    const valorLiquido = valorFinal * (1 - taxa / 100);
+  
+    const lucro = valorLiquido - custoComIndireto;
     const rentabilidade = (lucro / valorFinal) * 100;
-    
+  
     return rentabilidade;
   };
+  
 
   const handleBack = () => {
     if (hasUnsavedChanges) {
@@ -1204,7 +1207,7 @@ const CadastroProduto = () => {
                               <td className="py-3 px-4 text-sm font-medium text-foreground whitespace-nowrap">
                                 {(() => {
                                   const valorFinal = parseCurrencyToDecimal(valorFinalExibido);
-                                  const rentabilidade = calcularRentabilidade(valorFinal);
+                                  const rentabilidade = calcularRentabilidade(valorFinal, plataforma.taxa);
                                   return (
                                     <span className={rentabilidade >= 0 ? "text-green-600" : "text-red-600"}>
                                       {formatPercentage(rentabilidade)}%
