@@ -46,7 +46,7 @@ const CalculadoraPreco = () => {
     const lucro = valorRecebido - custoTotal;
 
     // Rentabilidade = Lucro ÷ Custo Total × 100
-    const rentabilidade = custoTotal > 0 ? (lucro / custoTotal) * 100 : 0;
+    const rentabilidade = custoTotal > 0 ? (lucro / precoFinal) * 100 : 0;
 
     return {
       custoBase,
