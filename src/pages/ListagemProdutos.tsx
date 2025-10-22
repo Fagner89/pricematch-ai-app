@@ -86,12 +86,13 @@ const ListagemProdutos = () => {
 
   const calcularRentabilidade = (produto: Produto) => {
     const custo = produto.custoProducao || 0;
-    const preco = getPrecoBalcao(produto);
-    if (custo <= 0 || preco <= 0) return { percent: 0, formatted: "0,00%" };
+    if (custo <= 0) return { percent: 0, formatted: "0,00%" };
   
-    // Busca custo indireto salvo no produto ou no padrão
+    // Busca custo indireto e margem salvos no produto ou no padrão
     const saved = localStorage.getItem("margem");
     let custoIndiretoDecimal = 0;
+    let margemDecimal = 0;
+    
     try {
       if (produto.custoIndireto) {
         // Custo indireto já está em formato "30,00" (representando 30%)
@@ -101,15 +102,31 @@ const ListagemProdutos = () => {
         const custoIndiretoStr = parsed?.custoIndireto || "0";
         custoIndiretoDecimal = parseFloat(custoIndiretoStr.replace(',', '.') || "0") / 100;
       }
+      
+      // Busca margem do padrão
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        const margemStr = parsed?.margem || "0";
+        margemDecimal = parseFloat(margemStr.replace(',', '.') || "0") / 100;
+      }
     } catch {
       custoIndiretoDecimal = 0;
+      margemDecimal = 0;
     }
   
-    // Aplica custo indireto
-    const custoComIndireto = custo * (1 + custoIndiretoDecimal);
-  
-    // Calcula rentabilidade
-    const percent = ((preco - custoComIndireto) / preco) * 100;
+    // 1. Custo Total = Custo + (Custo × Custo Indireto %)
+    const custoTotal = custo * (1 + custoIndiretoDecimal);
+    
+    // 2. Preço Sugerido = Custo Total + (Custo Total × Margem %)
+    const precoSugerido = custoTotal * (1 + margemDecimal);
+    
+    if (precoSugerido <= 0) return { percent: 0, formatted: "0,00%" };
+    
+    // 3. Lucro = Preço Sugerido − Custo Total
+    const lucro = precoSugerido - custoTotal;
+    
+    // 4. Rentabilidade = (Lucro ÷ Preço Sugerido) × 100
+    const percent = (lucro / precoSugerido) * 100;
     const formatted = `${percent.toFixed(2).replace('.', ',')}%`;
     return { percent, formatted };
   };
