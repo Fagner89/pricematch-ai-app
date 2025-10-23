@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Precificai</string>
+    <string name="title_activity_main">Precificai</string>
+    <string name="package_name">com.nextsoft.precificai</string>
+    <string name="custom_url_scheme">com.nextsoft.precificai</string>
+</resources>

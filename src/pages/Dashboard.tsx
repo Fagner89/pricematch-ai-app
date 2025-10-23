@@ -166,7 +166,7 @@ const Dashboard = () => {
       label: "Insumos cadastrados",
       active: true,
       countNavigateTo: "/listagem-insumos"
-    },
+    /*},
     {
       title: "Novo Pedido",
       icon: ShoppingCart,
@@ -174,7 +174,7 @@ const Dashboard = () => {
       count: vendasHoje.quantidade,
       label: "Pedidos hoje",
       active: true
-    }
+    */}
   ];
 
   return (
@@ -212,7 +212,7 @@ const Dashboard = () => {
           
           {/* Sales Cards Row */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-            {/* Today's Sales */}
+            {/* Today's Sales }
             <Card className="shadow-sm">
               <CardContent className="p-4 sm:p-6">
                 <div className="space-y-2">
@@ -221,9 +221,9 @@ const Dashboard = () => {
                   <p className="text-xl sm:text-2xl font-bold text-foreground">{formatCurrency(vendasHoje.total)}</p>
                 </div>
               </CardContent>
-            </Card>
+            </Card>*/}
 
-            {/* Orders Count */}
+            {/* Orders Count }
             <Card className="shadow-sm">
               <CardContent className="p-4 sm:p-6">
                 <div className="space-y-2">
@@ -232,14 +232,14 @@ const Dashboard = () => {
                   <p className="text-xl sm:text-2xl font-bold text-foreground">{vendasHoje.quantidade}</p>
                 </div>
               </CardContent>
-            </Card>
-          </div>
+            </Card>*/}
+          </div> 
 
-          {/* Profitability Section */}
+          {/* Profitability Section }
           <Card className="shadow-sm">
             <CardContent className="p-4 sm:p-6">
               <div className="grid grid-cols-2 gap-4">
-                {/* Higher Profitability */}
+                { Higher Profitability }
                 <div className="space-y-3">
                   <div className="flex items-center gap-2">
                     <TrendingUp className="w-4 h-4 text-green-600" />
@@ -262,7 +262,7 @@ const Dashboard = () => {
                   </div>
                 </div>
 
-                {/* Lower Profitability */}
+               # {/* Lower Profitability  }
                 <div className="space-y-3">
                   <div className="flex items-center gap-2">
                     <TrendingDown className="w-4 h-4 text-red-600" />
@@ -286,78 +286,111 @@ const Dashboard = () => {
                 </div>
               </div>
             </CardContent>
-          </Card>
+          </Card>*/}
 
-          {/* Action Buttons */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-            {actionButtons.map((button, index) => {
-              const IconComponent = button.icon;
-              const isPrimary = (button as any).isPrimary;
-              
-              return (
-                <Card 
-                  key={index} 
-                  className={`shadow-sm transition-all duration-200 ${
-                    button.active 
-                      ? 'hover:shadow-md cursor-pointer' 
-                      : 'opacity-60 cursor-not-allowed'
-                  } ${isPrimary ? 'border-primary/50 bg-gradient-to-br from-primary/5 to-primary/10' : ''}`}
-                  onClick={() => button.active && navigate(button.path)}
+<div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+  {actionButtons.map((button, index) => {
+    const IconComponent = button.icon;
+    const isPrimary = (button as any).isPrimary;
+
+    return (
+      <Card
+        key={index}
+        className={`shadow-sm transition-all duration-200
+          ${button.active
+            ? 'hover:shadow-md cursor-pointer'
+            : 'opacity-60 cursor-not-allowed'}
+          ${isPrimary
+            ? 'border-primary/50 bg-gradient-to-br from-primary/5 to-primary/10'
+            : ''}
+          ${button.title === 'Calculadora de Preço' ? 'col-span-1 sm:col-span-2' : ''}
+        `}
+        onClick={() => button.active && navigate(button.path)}
+      >
+<CardContent
+  className={`p-4 sm:p-6 ${
+    button.title === 'Calculadora de Preço'
+      ? 'sm:flex sm:flex-col sm:items-center sm:justify-center sm:text-center'
+      : ''
+  }`}
+            >
+              <div
+                className={`flex items-center justify-between w-full ${
+                  button.title === 'Calculadora de Preço'
+                    ? 'sm:flex-col sm:justify-center sm:gap-3'
+                    : ''
+                }`}
+              >
+            <div className="flex items-center gap-4">
+              {/* Ícone */}
+              <div
+                className={`relative w-12 h-12 sm:w-14 sm:h-14 rounded-full flex items-center justify-center ${
+                  button.active
+                    ? isPrimary
+                      ? 'bg-primary shadow-lg'
+                      : 'bg-primary'
+                    : 'bg-muted'
+                }`}
+              >
+                <IconComponent
+                  className={`h-6 w-6 sm:h-7 sm:w-7 ${
+                    button.active
+                      ? 'text-primary-foreground'
+                      : 'text-muted-foreground'
+                  }`}
+                />
+                {!isPrimary && (
+                  <div className="absolute -top-1 -right-1 w-6 h-6 bg-primary rounded-full flex items-center justify-center border-2 border-background">
+                    <Plus className="h-3 w-3 text-primary-foreground" />
+                  </div>
+                )}
+              </div>
+
+              {/* Texto */}
+              <div className="flex-1 min-w-0">
+                <h3
+                  className={`font-semibold text-sm sm:text-base ${
+                    button.active
+                      ? isPrimary
+                        ? 'text-primary'
+                        : 'text-foreground'
+                      : 'text-muted-foreground'
+                  }`}
                 >
-                  <CardContent className="p-4 sm:p-6">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-4">
-                        {/* Icon with Plus */}
-                        <div className={`relative w-12 h-12 sm:w-14 sm:h-14 rounded-full flex items-center justify-center ${
-                          button.active ? (isPrimary ? 'bg-primary shadow-lg' : 'bg-primary') : 'bg-muted'
-                        }`}>
-                          <IconComponent className={`h-6 w-6 sm:h-7 sm:w-7 ${
-                            button.active ? 'text-primary-foreground' : 'text-muted-foreground'
-                          }`} />
-                          {!isPrimary && (
-                            <div className="absolute -top-1 -right-1 w-6 h-6 bg-primary rounded-full flex items-center justify-center border-2 border-background">
-                              <Plus className="h-3 w-3 text-primary-foreground" />
-                            </div>
-                          )}
-                        </div>
-                        
-                        {/* Content */}
-                        <div className="flex-1 min-w-0">
-                          <h3 className={`font-semibold text-sm sm:text-base ${
-                            button.active ? (isPrimary ? 'text-primary' : 'text-foreground') : 'text-muted-foreground'
-                          }`}>
-                            {button.title}
-                          </h3>
-                        </div>
-                      </div>
-                      
-                      {/* Count (only number clickable) - hide for calculator */}
-                      {!isPrimary && (
-                        <div className="text-right">
-                          <button
-                            type="button"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              if ((button as any).countNavigateTo) {
-                                navigate((button as any).countNavigateTo);
-                              }
-                            }}
-                            className="group text-right focus:outline-none"
-                            aria-label={`Abrir listagem de ${button.label}`}
-                          >
-                            <p className="text-lg sm:text-xl font-bold text-foreground group-hover:underline underline-offset-4">
-                              {button.count.toString().padStart(4, '0')}
-                            </p>
-                            <p className="text-xs text-muted-foreground">{button.label}</p>
-                          </button>
-                        </div>
-                      )}
-                    </div>
-                  </CardContent>
-                </Card>
-              );
-            })}
+                  {button.title}
+                </h3>
+              </div>
+            </div>
+
+            {/* Contador — escondido na Calculadora */}
+            {!isPrimary && (
+              <div className="text-right">
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    if ((button as any).countNavigateTo) {
+                      navigate((button as any).countNavigateTo);
+                    }
+                  }}
+                  className="group text-right focus:outline-none"
+                  aria-label={`Abrir listagem de ${button.label}`}
+                >
+                  <p className="text-lg sm:text-xl font-bold text-foreground group-hover:underline underline-offset-4">
+                    {button.count.toString().padStart(4, '0')}
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    {button.label}
+                  </p>
+                </button>
+              </div>
+            )}
           </div>
+        </CardContent>
+      </Card>
+    );
+  })}
+</div>
 
           {/* Cadastros Button - só exibe se não houver loja cadastrada */}
           {!temLojaCadastrada && (

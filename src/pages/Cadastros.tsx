@@ -9,13 +9,13 @@ const Cadastros = () => {
   const navigate = useNavigate();
 
   const cadastroOptions = [
-    {
+    /*{
       title: "Estoque",
       description: "Gerencie o estoque",
       icon: PackageOpen,
       path: "/estoque",
       active: true
-    },
+    },*/
     {
       title: "Produtos",
       description: "Gerencie seus produtos",
@@ -57,7 +57,7 @@ const Cadastros = () => {
       icon: Store,
       path: "/cadastro-loja",
       active: true
-    },
+    }/*,
     {
       title: "Clientes",
       description: "Cadastre seus clientes",
@@ -68,7 +68,7 @@ const Cadastros = () => {
     {
       title: "Relatórios",
       description: "Visualize relatórios"
-    }
+    }*/
   ];
 
   return (
